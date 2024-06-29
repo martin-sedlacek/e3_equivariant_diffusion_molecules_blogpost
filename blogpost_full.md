@@ -4,7 +4,7 @@ title: Speeding up 3D Molecule Generation: Equivariant Consistency
 description: Discussing Equivariant molecule generation using Consistency Models.
 tags: molecule generation, consistency models
 giscus_comments: true
-date: 2024-06-29
+date: 2024-06-30
 featured: true
 
 authors:
@@ -38,7 +38,7 @@ toc:
   - name: Implementing EDM with JAX
   - name: Conclusion
 
-# Optional custom styles
+
 _styles: >
   .fake-img {
     background: #bbb;
@@ -70,16 +70,6 @@ This inspired many subsequent works in the field [1, 4, 10, 31]. However, this m
 downside: the sequential denoising process of diffusion models can take a large amount of time and compute, 
 bottle-necking their performance [25].
 
-<!---
-Diffusion models are typically trained to generate data samples 
-from pure noise using a sequential denoising procedure. 
---->
-
-<!---
-We hope to give the reader an easy-to-understand overview of the underlying theory and core ideas of the EDM paper, leading
-to a better understanding of core topics in generative modelling and geometric deep learning.
---->
-
 We present two extensions, aimed to increase the speed of the EDM and uncap its potential:
 
 1. Training EDM as a Consistency Model [25]
@@ -90,16 +80,6 @@ sampling in diffusion models. In conjunction with this, we can make the model ev
 using the JAX framework. JAX has been shown to improve the speed of certain diffusion models by large amounts, with 
 one study finding a 5x speed improvement in a comparable diffusion model [12]. JAX tends to improve the performance 
 of models that require regular, repetitive computations such as diffusion models. 
-
-<!---
-Many previous works across various domains have shown that scaling model architectures to more parameter can significantly
-improve performance [2, 3, 4]. This has been an apparent case with generative models for language [4, 20, 21],
-but also for images and video [10, 11, 12, 13] among other use-cases. Many of these are variations of diffusion
-models, and we believe that a similar improvement can be observed with training diffusion models based on
-large Graph Neural Networks (GNN) as well [19]. With this work, we hope to take a step in this direction and demonstrate
-that the EDM can be trained much faster, leaving room for working with (potentially very) large GNN backbones without
-the need to scale or upgrade hardware extensively.
---->
 
 This increase in efficiency serves several purposes. Most importantly, increased performance enables us to use larger
 models with the same amount of compute. Many previous works across various domains have shown that scaling model
@@ -128,14 +108,6 @@ meaning transforming its input results in an equivalent transformation of its ou
 
 ## E(n) Equivariant Graph Neural Networks (EGNNs)
 
-<!---
-Note: get better sense of what features are, confirm there are no edge attributes, attention mechansim
---->
-
-<!---
-The backbone of our diffusion model is the EGNN. <- stated in the intro, commenting out
-An EGNN takes in a graph where some noise has been added and attempts to remove some / all of the noise. <- diffusion specific objective
---->
 
 Generating molecules naturally leans itself into graph representation, with the nodes representing atoms within the
 molecules, and edges representing their bonds. The features $\mathbf{h}_i \in \mathbb{R}^d$ of each atom, such as
@@ -159,11 +131,6 @@ $$\mathbf{x}^{l+1},\mathbf{h}^{l+1}=EGCL\[ \mathbf{x}^l, \mathbf{h}^l \] \qquad 
 
 The EGCL layer is defined through the formulas:
 
-<!-- $`\mathbf{m}_{ij} = \phi_e(\mathbf{h}_i^l, \mathbf{h}_j^l, d^2_{ij})`$
-
-$` \mathbf{h}_i^{l+1} = \phi_h\left(\mathbf{h}_i^l, \sum_{j \neq i} \tilde{e}_{ij} \mathbf{m}_{ij}\right) `$
-
-$`\mathbf{x}_i^{l+1} = \mathbf{x}_i^l + \sum_{j \neq i} \frac{\mathbf{x}_i^l \mathbf{x}_j^l}{d_{ij} + 1} \phi_x(\mathbf{h}_i^l, \mathbf{h}_j^l, d^2_{ij})`$ -->
 
 <div align="center">
 
@@ -186,11 +153,6 @@ This architecture then satisfies translation and rotation equivariance. Notably,
 between the nodes and these distances are not changed by isometric transformations.
 
 
-<!-- Using group actions we can explain translation equivariance in EGNN's. A translation by a vector c forms a group 
-action G(x)= x+c. An EGNN is designed in a way so if the node positions are translated by c, resulting a new 
-position x+c, the network with translate the output accordingly by c. This way it reflects the same group action 
-ensuring the network respects the translation group action. One way this is achieved is by using relative positional 
-information, which remain unchanged under the group action of translation. -->
 
 ## Diffusion Models
 
@@ -213,11 +175,7 @@ One of the most widely-used and powerful diffusion models is the Denoising Diffu
 
 ### Forward diffusion process ("noising")
 
-<!---
-To train a diffusion model, we take real data and progressively add noise to it. The image below provides an example with images:
 
-[Diffusion image https://www.calibraint.com/blog/beginners-guide-to-diffusion-models]
---->
 
 In DDPMs the forward noising process is parameterized by a Markov process, where transition at each time step $t$ adds
 Gaussian noise with a variance of $\beta_t \in (0,1)$. We formally write this transition as:
@@ -245,11 +203,7 @@ Figure 3: The Markov process of forward and reverse diffusion [8]
 
 ### Reverse diffusion process ("denoising")
 
-<!---
-We then train a model to "denoise" the data. Specifically, we train the model to predict the previous timestep,
-given the curren timestep. To be more specific, we train the model to predict the "noise" that had been added to the
-original data to get the current timestep. By subtracting the noise, we get the original data.
---->
+
 
 As Figure 3 shows, the reverse transitions are unknown, hence DDPM approximates them using a neural network 
 parametrized by $\theta$:
@@ -369,9 +323,6 @@ Formally, we say that for any orthogonal rotation matrix $\mathbf{R}$ the follow
 
 $$p(y|x) = p(\mathbf{R}y|\mathbf{R}x) \qquad \text{(21)}$$
 
-<!---
-(TBA - have a nice figure in my head to illustrate this with vectors if I can make it in time)
---->
 
 To uphold this property throughout the diffusion process, the Markov chain transition probability distributions at every 
 time step $t$ must be roto-invariant, otherwise rotations would alter the likelihood, breaking this desired equivariance property.
@@ -415,9 +366,6 @@ By constraining the model to this "subspace" of options where the center of the 
 the absolute positions are effectively turned into relative ones w.r.t. to the center of the molecule, hence the model 
 can now learn relationships that do not depend on the absolute position of the whole molecule in 3D space.
 
-<!---
-(TBA - quadruple check this intuition is correct and makes sense !!!!)
---->
 
 ### Training the EDM
 
@@ -439,9 +387,6 @@ $\qquad \text{(22)}$
 </p>
 
 
-<!-- $`\mathcal{L}_t =$ $\mathbb{E}_{\epsilon_t}$ $\left[ \frac{1}{2} w(t) \| \epsilon_t - \hat{\epsilon}_t \|^2 \right]`$
-
-and $`\epsilon_t \sim \mathcal{N}_{xh}(0, \mathbb{I})`$. -->
 
 
 
@@ -612,9 +557,6 @@ With a fully trained consistency model $f_\theta(\cdot, \cdot)$, we can generate
 Gaussian $\hat{x_T}$ $\sim \mathcal{N}(0, T^2I)$ and propagating this through the consistency model to obtain
 samples on the data distribution $\hat{x_{\epsilon}}$ $= f_\theta(\hat{x_T}, T)$ with as little as one diffusion step.
 
-<!-- Importantly, one can also use the consistency model to generate samples using multiple time steps by alternating denoising
-and noise injection steps for improved sample quality at the cost of speed. It should also be noted that this has
-important applications in zero-shot data editing [5], but in the case of molecules we did not use this property. -->
 
 <p align="center">
 <img src="readme_material//consistency_on_molecules.png" alt="Consistency Graph 1" width="600"/>
@@ -637,17 +579,6 @@ That is, given $x$ and $x_t$, we can estimate $\nabla \log p_t(x_t)$ with $-(x_t
 This unbiased estimate suffices to replace the pre-trained diffusion model in consistency distillation
 when using the Euler ODE solver in the limit of $N \to \infty$ [25].
 
-<!---
-**Theorem 2.** Let $`\Delta t := max_{n \in [1, N-1]} |t_{n+1} - t_n|`$. Assume $d$ and $f_{\theta^-}$ are both
-twice continuously differentiable with bounded second derivatives, the weighting function $`\lambda(\cdot)`$ is
-bounded, and $`\mathbb{E} [\| \nabla \log p_{t_n}(x_{t_n}) \|_2^2] < \infty`$.
-
-Assume further that we use the Euler ODE solver, and the pre-trained score model matches the ground truth, i.e.,
-$`\forall t \in [\epsilon, T] : s_\phi(x, t) \equiv \nabla \log p_t(x)`$.
-Then, $`\mathcal{L}_{CD}^N (\theta, \theta^-; \phi) = \mathcal{L}_{CT}^N (\theta, \theta^-) + o(\Delta t)`$,
-where the expectation is taken with respect to $`\mathbf{x} \sim p_\text{data}`$, $`n \sim \mathcal{U}[[ 1, N-1 ]]`$,
-and $`x_{t_{n+1}} \sim \mathcal{N}(x; t_n^2 I)`$.
---->
 
 Song et al. [25] justify this with a further theorem in their paper and show that the consistency training objective (CT loss)
 can then be defined as:
@@ -688,58 +619,6 @@ during sampling.
 (TBA - maybe put back some talking about the images idk yet [Martin])
 -->
 
-## JAX
-
-<!-- [Note: need to figure out the terminology here]
-[Sources: https://jax.readthedocs.io/en/latest/jit-compilation.html#jit-compilation]
-[https://eitca.org/artificial-intelligence/eitc-ai-gcml-google-cloud-machine-learning/google-cloud-ai-platform/introduction-to-jax/examination-review-introduction-to-jax/how-does-jax-leverage-xla-to-achieve-accelerated-performance/#:~:text=JAX%20(Just%20Another%20XLA)%20is,performance%20in%20machine%20learning%20applications.] -->
-
-<!-- https://jax.readthedocs.io/en/latest/faq.html#benchmarking-jax-code -->
-
-<!-- One paper found reimplementing Diffusion-QL (a diffusion-based offline RL algorithm) lead to a 5x speed increase (https://proceedings.neurips.cc/paper_files/paper/2023/file/d45e0bfb5a39477d56b55c0824200008-Paper-Conference.pdf).  -->
-
-Jax is a machine learning framework that can result in significantly faster code depending on the task. During compilation, Jax transforms are turned into computation graphs. XLA turns these computation graphs into efficient, GPU-ready machine code. This process becomes even quicker when we use JIT (Just in Time) compilation. With Jit compilation, arrays are replaced with abstract tracers, which encode the shape and datatype (but not values) of the arrays. Using these tracers, jax.jit extracts the sequence of operations required by the function. This sequence can then be cached and reapplied within XLA on new inputs of the same shape and data type, saving computation.
-
-Diffusion seems like an ideal use case for Jax, since diffusion requires certain functions to be run repeatedly. Thus, we can optimize the function once and gain speed everytime we reuse the function. However, in order to run Jax with jit, we had to overcome several changes:
-
-### Using pure functions:
-
-Jax functions must be pure, meaning the function will always have the same result given the same input. Thus, we had to restructure functions so that they did not rely on global variables. This also means JAX cannot use stateful randomness like Pytorch. Instead, randomness is controlled by explicit random keys. We maintain a primary random key ("root key") and generate new subkeys from it as needed. This approach ensures consistent randomization while also allowing for reproducibility of results. Additionally, pure functions cannot have side effects. Thus, we had to remove certain statements, like assert and print statements.
-
-### Enabling Jit:
-
-In the pytorch implementations, the size of many inputs would vary based upon the batch. For example, h (the node features) had a shape of [size_batch, size_largest_molecule_in_batch]. Depedending on the batch, the number of columns in h ranged from 26 to 29. This would cause massive performance problems for a jitted function, because JAX must create a new computation graph to accomodate the newly sized inputs. To prevent this, we needed to apply padding to all inputs to standardize the input size.
-
-Jit also adds some complexity and constraints to using control flow. Jit must understand the path the control flow will take, which may be tough given the potentially abstract inputs. We had to change certain conditionals to work with jax.
-
-### Dataset Processing:
-
-To enhance the efficiency of data transformation, we converted PyTorch tensors into JAX numpy arrays within the dataloader. This adjustment speeds up the data loading process, facilitating smoother integration with JAX's computational methods.
-
-### Neural Network Architecture:
-
-The neural network was restructured to conform to JAX's architectural requirements. Key functional components within the network class now include the setup method and the **call** method. The setup method is used for initializing network parameters, while the **call** method handles forward propagation and integrates with JAX’s automatic differentiation to manage gradient computations and backpropagation. Additionally, the model includes many custom-defined functions that can be accessed through options within the **call** method. Notably, the model incorporates randomized operations in the diffusion model, which are crucial for ensuring diversity in the generated data.
-
-### Model Initialization and Training:
-
-Before commencing the training process, the model is first initialized with the initial batch of data from the dataset. This step ensures that the model's layers are constructed with dimensions that match the input size, which remains flexible and undefined to simplify model architecture. During training, the **call** method, model parameters, and the optimizer are encapsulated into a single 'state' object.
-
-To accelerate the training process, the training steps per epoch are compiled using JAX's jit compiler, which optimizes execution speed by compiling Python functions into machine code. The original PyTorch implementation already paralleled batch processing inside the model, so we preserved this feature in the JAX implementation instead of using JAX’s vmap for vectorizing operations across batches.
-
-## Experiments
-
-### Dataset & Metrics
-
-The QM9 dataset[17, 20] (Quantum Machine 9) is a commonly used dataset containing the molecular properties and atomic 
-coordinates for 133,885 small molecules, along with computed geometric, energetic, electronic, and thermodynamic 
-properties. Each molecule contains up to 9 heavy atoms (with up to 29 atoms in total, including hydrogen). In this 
-experiment, we train the EDM model to generate molecules with 3D coordinates and atom types (H, C, N, O, F). Other, 
-related datasets include QM7, QM7b, QM8, ZINC, ChEMBL, MOSES, and Tox21.
-
-Replicating the original EDM paper, we use the train/validation/test splits, which divide the data into 100,000 training 
-samples, 18,000 validation samples, and 13,000 test samples. To evaluate the quality of our molecule generation, we 
-evaluate atom stability (the percentage of atoms with the correct valency) and molecule stability (the percentage 
-of generated molecules where all atoms are stable) of the generated molecules. For a full list of hyperparameters, please consult the README in our repository. 
 
 ### EDM Consistency Model Results
 
@@ -793,30 +672,6 @@ The controlled trade-off between speed and sample quality should be possible wit
 however, all attempts to make multi-step sampling work resulted in decreased atom stability. We further 
 discuss the set-up and hypothesise why this did not work in the next section.  
 
-### EDM in JAX Results
-
-Due to time constraints, we were unable to tune either of our models to the level of the previous pytorch implementation. After training, the consistency model achieved an atom stability of 15% while the Jax model achieved an atom stability of 16%. Neither of these are competitive with the 99% atom stability reported in the original paper. 
-
-We strongly suspect that the inferior performance of the Jax model results from a bug in our code, which we are still attempting to identify. Converting to Jax required changing the architecture of parts of the code, which may have resulted in a bug. The bug may also be specific to our use of Jax: errors such as improper handling of global values, or use of datatypes, can lead to unexpected behavior. Some typo in the reimplementation may also result in the inferior performance. Differences in optimization and initialization may also cause worse performance, although they do not seem to account for a discrepancy of this magnitude. 
-
-The jax model has a relatively high loss initially, but converges quickly to a comparable value as pytorch model. At the meantime, the atom stability flunctuates a lot while the molecule stability keeps zero. Both metrics, test loss curve and atomic stability can be seen at figure 12. It is possible that we still need some fine-tuning to get a better performance in evaluation metric, since the training process is totally different as can be seen from the loss curve. The atom stability could also be improved by parameters setting since we tested the atom stability in a shorter interval (--test_epoch 2) and smaller batch size (64).
-
-<p align="center">
-  <img src="readme_material/test_loss.png" alt="Test Loss of jax model" width="350" />
-  <img src="readme_material/jax_atom_stab.png" alt="Atom stability of jax model" width="350" />
-</p>
-<p align="center">
-Figure 12: Test Loss curve of jax model (left) and best atom_stability results for jax model (right)
-</p>
-
-<!-- <p align="center">
-  <img src="readme_material/jax_atom_stab.png" alt="Atom stability of jax model" width="450" />
-</p>
-<p align="center">
-Figure nTBA: Best results for atom stability metric of jax model
-</p> -->
-
-We found that our Jax model took only 62% of the time that our pytorch model took for a training epoch with a small model (diffusion_steps=200). We view this number as a reasonable floor for the speed improvement that Jitting can have. For example, our code still spent a lot of time recompiling, as we found when we ran the code with debug flag `JAX_LOG_COMPILES=1`. We believe we can reduce this recompilation. Moreover, we believe that we could parallelize our code better. Our code runs operations on batches of inputs (just as the original pytorch version did). We could change the code to run on single inputs, and then use `jax.pmap` to parallelize, which might result in better performance. There are also a number of smaller optimizations that we could make given time.
 
 ## Conclusion
 
