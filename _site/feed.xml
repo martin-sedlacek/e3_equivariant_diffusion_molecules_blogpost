@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-06-30T01:17:02+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
-</subtitle><entry><title type="html"></title><link href="http://localhost:4000/blog/2024/2024-06-30-equivariant_consistency/" rel="alternate" type="text/html" title="" /><published>2024-06-30T01:17:02+02:00</published><updated>2024-06-30T01:17:02+02:00</updated><id>http://localhost:4000/blog/2024/2024-06-30-equivariant_consistency</id><content type="html" xml:base="http://localhost:4000/blog/2024/2024-06-30-equivariant_consistency/"><![CDATA[<h2 id="introduction">Introduction</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-06-30T01:26:29+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
+</subtitle><entry><title type="html"></title><link href="http://localhost:4000/blog/2024/2024-06-30-equivariant_consistency/" rel="alternate" type="text/html" title="" /><published>2024-06-30T01:26:29+02:00</published><updated>2024-06-30T01:26:29+02:00</updated><id>http://localhost:4000/blog/2024/2024-06-30-equivariant_consistency</id><content type="html" xml:base="http://localhost:4000/blog/2024/2024-06-30-equivariant_consistency/"><![CDATA[<h2 id="introduction">Introduction</h2>
 
 <h1 id="speeding-up-3d-molecule-generation-equivariant-diffusion-with-jax-and-consistency-models">Speeding up 3D Molecule Generation: Equivariant Diffusion with JAX and Consistency Models</h1>
 
@@ -61,12 +61,34 @@ by EGNNs beating similar non-equivariant Graph Convolution Networks on molecular
 <p>The E(n) EGNN is a special type of message-passing Graph Neural Network (GNN) [7] with explicit rotation and translation equivariance baked in. A traditional message-passing GNN consists of several layers, each of which
 updates the representation of each node, using the information in nearby nodes.</p>
 
-<p align="center">
+<!-- <p align="center">
   <img src="readme_material/message_passing.png" alt="Diffusion in nature" width="300" />
 </p>
 <p align="center">
 Figure 1: Visualization of a message passing network (Credit: Yuki Asano)
-</p>
+</p> -->
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/message_passing-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/message_passing-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/message_passing-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/message_passing.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+    </div>
+</div>
 
 <p>The EGNN specifically contains <em>equivariant</em> convolution layers:</p>
 

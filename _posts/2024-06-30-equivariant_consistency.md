@@ -117,13 +117,17 @@ by EGNNs beating similar non-equivariant Graph Convolution Networks on molecular
 The E(n) EGNN is a special type of message-passing Graph Neural Network (GNN) [7] with explicit rotation and translation equivariance baked in. A traditional message-passing GNN consists of several layers, each of which
 updates the representation of each node, using the information in nearby nodes.
 
-<p align="center">
+<!-- <p align="center">
   <img src="readme_material/message_passing.png" alt="Diffusion in nature" width="300" />
 </p>
 <p align="center">
 Figure 1: Visualization of a message passing network (Credit: Yuki Asano)
-</p>
-
+</p> -->
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/message_passing.jpg" class="img-fluid rounded z-depth-1" zoomable=true %}
+    </div>
+</div>
 
 The EGNN specifically contains _equivariant_ convolution layers:
 

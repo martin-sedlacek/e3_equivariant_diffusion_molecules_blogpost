@@ -62,12 +62,34 @@ by EGNNs beating similar non-equivariant Graph Convolution Networks on molecular
 <p>The E(n) EGNN is a special type of message-passing Graph Neural Network (GNN) [7] with explicit rotation and translation equivariance baked in. A traditional message-passing GNN consists of several layers, each of which
 updates the representation of each node, using the information in nearby nodes.</p>
 
-<p align="center">
-  <img src="readme_material/message_passing.png" alt="Diffusion in nature" width="300">
+<!-- <p align="center">
+  <img src="readme_material/message_passing.png" alt="Diffusion in nature" width="300" />
 </p>
 <p align="center">
 Figure 1: Visualization of a message passing network (Credit: Yuki Asano)
-</p>
+</p> -->
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/message_passing-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/message_passing-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/message_passing-1400.webp 1400w," sizes="95vw" type="image/webp"></source>
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/message_passing.jpg" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();">
+  </picture>
+
+  
+</figure>
+
+    </div>
+</div>
 
 <p>The EGNN specifically contains <em>equivariant</em> convolution layers:</p>
 
