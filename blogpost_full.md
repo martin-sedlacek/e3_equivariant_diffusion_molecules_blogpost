@@ -1,9 +1,8 @@
-
 ---
 layout: distill
-title: Speeding up 3D Molecule Generation: Equivariant Diffusion with JAX and Consistency Models
-description: Discussing Equivariant Diffusion Models (EDM) and methods to enhance their speed using Consistency Models and JAX.
-tags: molecule generation, diffusion models, JAX, consistency models
+title: Speeding up 3D Molecule Generation: Equivariant Consistency
+description: Discussing Equivariant molecule generation using Consistency Models.
+tags: molecule generation, consistency models
 giscus_comments: true
 date: 2024-06-29
 featured: true
@@ -30,7 +29,7 @@ authors:
     affiliations:
       name: Some University
 
-bibliography: /path/to/your/bibliography/file.bib
+bibliography: distill-template/2018-12-22-distill.bib
 
 toc:
   - name: Introduction
