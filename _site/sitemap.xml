@@ -17,10 +17,11 @@
 <lastmod>2021-05-22T00:00:00+02:00</lastmod>
 </url>
 <url>
-<loc>http://localhost:4000/</loc>
+<loc>http://localhost:4000/blog/2024/2024-06-30-equivariant_consistency/</loc>
+<lastmod>2024-06-30T01:17:02+02:00</lastmod>
 </url>
 <url>
-<loc>http://localhost:4000/blogpost_full/</loc>
+<loc>http://localhost:4000/</loc>
 </url>
 <url>
 <loc>http://localhost:4000/instructions/</loc>
@@ -33,5 +34,8 @@
 </url>
 <url>
 <loc>http://localhost:4000/blog/2021/</loc>
+</url>
+<url>
+<loc>http://localhost:4000/blog/2024/</loc>
 </url>
 </urlset>
