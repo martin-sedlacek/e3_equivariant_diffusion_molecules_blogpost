@@ -125,7 +125,7 @@ Figure 1: Visualization of a message passing network (Credit: Yuki Asano)
 </p> -->
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/message_passing.jpg" class="img-fluid rounded z-depth-1" zoomable=true %}
+        {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/message_passing.png" class="img-fluid rounded z-depth-1" zoomable=true %}
     </div>
 </div>
 
