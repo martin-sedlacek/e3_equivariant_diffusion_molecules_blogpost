@@ -1,37 +1,39 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-06-30T03:09:03+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
-</subtitle><entry><title type="html">Equivariant Consistency for molecule generation</title><link href="http://localhost:4000/blog/2024/equivariant_consistency/" rel="alternate" type="text/html" title="Equivariant Consistency for molecule generation" /><published>2024-06-30T00:00:00+02:00</published><updated>2024-06-30T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/equivariant_consistency</id><content type="html" xml:base="http://localhost:4000/blog/2024/equivariant_consistency/"><![CDATA[<h2 id="introduction">Introduction</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-06-30T12:59:35+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
+</subtitle><entry><title type="html">Equivariant Diffusion for Molecule Generation in 3D using Consistency Models</title><link href="http://localhost:4000/blog/2024/equivariant_diffusion/" rel="alternate" type="text/html" title="Equivariant Diffusion for Molecule Generation in 3D using Consistency Models" /><published>2024-06-30T00:00:00+02:00</published><updated>2024-06-30T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/equivariant_diffusion</id><content type="html" xml:base="http://localhost:4000/blog/2024/equivariant_diffusion/"><![CDATA[<h2 id="introduction">Introduction</h2>
 
-<p>In this blog post, we present and discuss the seminal paper <a href="https://arxiv.org/abs/2203.17003">“Equivariant Diffusion for Molecule Generation in 3D”</a> <d-cite key="hoogeboom2022equivariant"></d-cite>, 
-which presented an Equivariant Diffusion Model (EDM). The authors trained a diffusion model with an 
-Equivariant Graph Neural Network (EGNN) backbone to generate 3D molecules, a novel approach, which 
-demonstrated strong improvement over other (non-diffusion based) generative methods at the time.
-This inspired many subsequent works in the field <d-cite key="anstine2023generative"></d-cite><d-cite key="corso2023diffdock"></d-cite><d-cite key="igashov2024equivariant"></d-cite><d-cite key="xu2023geometric"></d-cite>. However, this method has a major 
-downside: the sequential denoising process of diffusion models can take a large amount of time and compute, 
-bottle-necking their performance <d-cite key="song2023consistency"></d-cite>.</p>
+<p>In this blog post, we introduce and discuss <a href="https://arxiv.org/abs/2203.17003">“Equivariant Diffusion for Molecule Generation in 3D”</a> <d-cite key="hoogeboom2022equivariant"></d-cite>, 
+which first introduced 3D molecule generation using diffusion models. Their Equivariant Diffusion Model (EDM) also
+incorporating an Equivariant Graph Neural Network (EGNN) architecture, effectively grounding the model with inductive
+priors about the symmetries in 3D space. This work demonstrated strong improvement over other (non-diffusion) generative 
+methods for molecules at the time, and inspired many subsequent works <d-cite key="anstine2023generative"></d-cite><d-cite key="corso2023diffdock"></d-cite><d-cite key="igashov2024equivariant"></d-cite><d-cite key="xu2023geometric"></d-cite>.</p>
 
-<p>We present two extensions, aimed to increase the speed of the EDM and uncap its potential:</p>
-
+<p>Traditional diffusion is unfortunately bottle-necked by the sequential denoising process, which can be slow and computationally expensive <d-cite key="song2023consistency"></d-cite>.
+Hence, we also aim to demonstrate that an EDM can be trained significantly faster, uncapping its potential, with the 
+following two extensions:
+&lt;</p>
 <ol>
   <li>Training EDM as a Consistency Model <d-cite key="song2023consistency"></d-cite></li>
   <li>Faster implementation of the EDM with JAX <d-cite key="bradbury2018jax"></d-cite></li>
 </ol>
 
-<p>Consistency models enable the model to generate samples in a single step, which can be much faster than the sequential 
-sampling in diffusion models. In conjunction with this, we can make the model even faster by implementing the model 
-using the JAX framework. JAX has been shown to improve the speed of certain diffusion models by large amounts, with 
-one study finding a 5x speed improvement in a comparable diffusion model <d-cite key="kang2024efficient"></d-cite>. JAX tends to improve the performance 
-of models that require regular, repetitive computations such as diffusion models.</p>
+<p>Consistency models enable generating samples down to a single step, while the JAX framework has been shown to improve performance 
+of models that require regular, repetitive computations such as diffusion models. It also demonstrated up to 5x improvement 
+on a comparable diffusion model <d-cite key="kang2024efficient"></d-cite>.</p>
 
-<p>This increase in efficiency serves several purposes. Most importantly, increased performance enables us to use larger
-models with the same amount of compute. Many previous works across various domains have shown that scaling model
-architectures to more parameters can significantly improve performance <d-cite key="dosovitskiy2020image"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="krizhevsky2012imagenet"></d-cite> in domains including language <d-cite key="brown2020language"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="touvron2023llama"></d-cite>
-as well as images and video <d-cite key="liu2024sora"></d-cite><d-cite key="ramesh2022hierarchical"></d-cite><d-cite key="rombach2022high"></d-cite><d-cite key="saharia2022photorealistic"></d-cite>. Similar scaling effect was observed in Graph Neural Networks (GNN) <d-cite key="sriram2022towards"></d-cite>.
-We hope that, by improving the speed of our models, we can enable the use of larger GNN backbones without requiring
-more expensive compute. Even without compute constraints, increasing speed hastens development and decreases
-the carbon footprint overall.</p>
+<p>This increase in efficiency can serve several purposes. Most importantly, increased performance enables the use of larger
+models without increased need for compute. Many previous works across various domains have shown that scaling model
+architectures to more parameters can significantly improve performance <d-cite key="dosovitskiy2020image"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="krizhevsky2012imagenet"></d-cite> 
+in domains including language <d-cite key="brown2020language"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="touvron2023llama"></d-cite>
+as well as images and video <d-cite key="liu2024sora"></d-cite><d-cite key="ramesh2022hierarchical"></d-cite><d-cite key="rombach2022high"></d-cite><d-cite key="saharia2022photorealistic"></d-cite>. 
+A similar scaling effect was also observed in Graph Neural Networks (GNN) <d-cite key="sriram2022towards"></d-cite>.
+We hope that, by improving the inference and training speed of these models, we can enable the use of larger GNN backbones 
+without requiring more expensive compute. As a side effect, increasing the model speed also hastens development and decreases
+the overall carbon footprint.</p>
 
-<p>We also note that these performance improvements are, in theory at least, not exclusive to EDM or GNNs. Many other ML 
-models might be improved through a JAX reimplementation and many diffusion models can be trained as a consistency model.</p>
+<!--- We also note that these performance improvements are, in theory at least, not exclusive to EDM or GNNs. Many other ML 
+models might be improved through a JAX reimplementation and many diffusion models can be trained as a consistency model. --->
+
+<h2 id="preliminary-concepts">Preliminary Concepts</h2>
 
 <h4 id="groups-and-equivariance-for-molecules">Groups and Equivariance for molecules</h4>
 
@@ -76,9 +78,9 @@ Figure 1: Visualization of a message passing network (Credit: Yuki Asano)
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/message_passing-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/message_passing-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/message_passing-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/message_passing-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/message_passing-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/message_passing-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/message_passing.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/message_passing.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -140,9 +142,9 @@ inspired scientists to create models of this behaviour. When applied to generati
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/Diffusion_microscopic-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/Diffusion_microscopic-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/Diffusion_microscopic-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/Diffusion_microscopic-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/Diffusion_microscopic-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/Diffusion_microscopic-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/Diffusion_microscopic.gif" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/Diffusion_microscopic.gif" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -163,9 +165,9 @@ inspired scientists to create models of this behaviour. When applied to generati
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/Diffusion_models_flower-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/Diffusion_models_flower-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/Diffusion_models_flower-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/Diffusion_models_flower-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/Diffusion_models_flower-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/Diffusion_models_flower-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/Diffusion_models_flower.gif" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/Diffusion_models_flower.gif" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -221,9 +223,9 @@ q\left( x_1, \ldots, x_T \mid x_0 \right) := \prod_{t=1}^T q \left( x_t \mid x_{
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/ddpm_figure-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/ddpm_figure-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/ddpm_figure-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/ddpm_figure-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/ddpm_figure-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/ddpm_figure-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/ddpm_figure.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/ddpm_figure.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -322,9 +324,9 @@ x_{t-1} = \frac{1}{\sqrt{1 - \beta_t}} \left( x_t - \frac{\beta_t}{\sqrt{1 - \al
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/diffusion_training-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/diffusion_training-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/diffusion_training-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/diffusion_training-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/diffusion_training-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/diffusion_training-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/diffusion_training.gif" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/diffusion_training.gif" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -377,9 +379,9 @@ time step $t$ must be roto-invariant, otherwise rotations would alter the likeli
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/roto_symetry_gaus-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/roto_symetry_gaus-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/roto_symetry_gaus-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/roto_symetry_gaus-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/roto_symetry_gaus-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/roto_symetry_gaus-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/roto_symetry_gaus.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/roto_symetry_gaus.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -400,9 +402,9 @@ time step $t$ must be roto-invariant, otherwise rotations would alter the likeli
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/roto_symetry_donut-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/roto_symetry_donut-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/roto_symetry_donut-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/roto_symetry_donut-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/roto_symetry_donut-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/roto_symetry_donut-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/roto_symetry_donut.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/roto_symetry_donut.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -498,9 +500,9 @@ Consider the transfer of mass under the data probability distribution in time.</
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/bimodal_to_gaussian_plot-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/bimodal_to_gaussian_plot-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/bimodal_to_gaussian_plot-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/bimodal_to_gaussian_plot-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/bimodal_to_gaussian_plot-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/bimodal_to_gaussian_plot-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/bimodal_to_gaussian_plot.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/bimodal_to_gaussian_plot.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -564,9 +566,9 @@ a solution trajectory mapping all points along the way to the initial data distr
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/consistency_models_pf_ode-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/consistency_models_pf_ode-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/consistency_models_pf_ode-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/consistency_models_pf_ode-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/consistency_models_pf_ode-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/consistency_models_pf_ode-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/consistency_models_pf_ode.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/consistency_models_pf_ode.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -678,9 +680,9 @@ samples on the data distribution $\hat{x_{\epsilon}}$ $= f_\theta(\hat{x_T}, T)$
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/consistency_on_molecules-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/consistency_on_molecules-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/consistency_on_molecules-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/consistency_on_molecules-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/consistency_on_molecules-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/consistency_on_molecules-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/consistency_on_molecules.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/consistency_on_molecules.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -761,9 +763,9 @@ loss curves, both in magnitude of the NLL and convergence rate as shown in figur
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_train_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_train_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_train_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_train_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_train_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_train_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_train_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_train_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -784,9 +786,9 @@ loss curves, both in magnitude of the NLL and convergence rate as shown in figur
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/results_consistency_train_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/results_consistency_train_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/results_consistency_train_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/results_consistency_train_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/results_consistency_train_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/results_consistency_train_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/results_consistency_train_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/results_consistency_train_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -828,9 +830,9 @@ changed objective as show on figure 10:</p>
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_val_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_val_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_val_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_val_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_val_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_val_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_val_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_val_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -851,9 +853,9 @@ changed objective as show on figure 10:</p>
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/results_consistency_val_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/results_consistency_val_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/results_consistency_val_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/results_consistency_val_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/results_consistency_val_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/results_consistency_val_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/results_consistency_val_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/results_consistency_val_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -876,9 +878,9 @@ changed objective as show on figure 10:</p>
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_test_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_test_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_test_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_test_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_test_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_test_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_test_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_test_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -899,9 +901,9 @@ changed objective as show on figure 10:</p>
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/results_consistency_test_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/results_consistency_test_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/results_consistency_test_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/results_consistency_test_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/results_consistency_test_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/results_consistency_test_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/results_consistency_test_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/results_consistency_test_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -947,9 +949,9 @@ the consistency model.</p>
       https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
     -->
     
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/results_consistency_atom_stability-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/results_consistency_atom_stability-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/results_consistency_atom_stability-1400.webp 1400w," sizes="95vw" type="image/webp" />
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_diffusion/results_consistency_atom_stability-480.webp 480w,/assets/img/2024-06-30-equivariant_diffusion/results_consistency_atom_stability-800.webp 800w,/assets/img/2024-06-30-equivariant_diffusion/results_consistency_atom_stability-1400.webp 1400w," sizes="95vw" type="image/webp" />
     
-    <img src="/assets/img/2024-06-30-equivariant_consistency/results_consistency_atom_stability.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+    <img src="/assets/img/2024-06-30-equivariant_diffusion/results_consistency_atom_stability.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
   </picture>
 
   
@@ -974,7 +976,7 @@ As such, the consistency model also did not achieve competitive results.</p>
 <p>Although the results are not close to state of the art, we are confident that these methods can achieve better performance 
 with more development time, and in their current state, can serve as a good proof of concept. A natural direction
 for future research is to continue investigating the poor performance of the current implementation and fix the
-underlying issues and suspected bugs to get competitive results.</p>]]></content><author><name>Martin Sedlacek</name></author><category term="molecule" /><category term="generation," /><category term="consistency" /><category term="models" /><summary type="html"><![CDATA[Discussing Equivariant molecule generation using Consistency Models.]]></summary></entry><entry><title type="html">a distill-style blog post</title><link href="http://localhost:4000/blog/2021/distill/" rel="alternate" type="text/html" title="a distill-style blog post" /><published>2021-05-22T00:00:00+02:00</published><updated>2021-05-22T00:00:00+02:00</updated><id>http://localhost:4000/blog/2021/distill</id><content type="html" xml:base="http://localhost:4000/blog/2021/distill/"><![CDATA[<h2 id="equations">Equations</h2>
+underlying issues and suspected bugs to get competitive results.</p>]]></content><author><name>Martin Sedlacek*</name></author><category term="equivariance," /><category term="diffusion," /><category term="molecule" /><category term="generation," /><category term="consistency" /><category term="models" /><summary type="html"><![CDATA[Introduction to the seminal papers &quot;Equivariant Diffusion for Molecule Generation in 3D&quot; and &quot;Consistency Models&quot; with an adaptation fusing the two together for fast molecule generation.]]></summary></entry><entry><title type="html">a distill-style blog post</title><link href="http://localhost:4000/blog/2021/distill/" rel="alternate" type="text/html" title="a distill-style blog post" /><published>2021-05-22T00:00:00+02:00</published><updated>2021-05-22T00:00:00+02:00</updated><id>http://localhost:4000/blog/2021/distill</id><content type="html" xml:base="http://localhost:4000/blog/2021/distill/"><![CDATA[<h2 id="equations">Equations</h2>
 
 <p>This theme supports rendering beautiful math in inline and display modes using <a href="https://www.mathjax.org/">MathJax 3</a> engine.
 You just need to surround your math expression with <code class="language-plaintext highlighter-rouge">$$</code>, like <code class="language-plaintext highlighter-rouge">$$ E = mc^2 $$</code>.
