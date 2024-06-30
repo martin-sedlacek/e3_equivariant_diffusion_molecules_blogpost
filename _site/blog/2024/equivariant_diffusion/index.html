@@ -773,39 +773,45 @@ being enforced with this self-consistency property during training.</p>
 
 <!--- 1940 words --->
 
-<h3 id="boundary-condition--function-parametrization">Boundary Condition &amp; Function Parametrization</h3>
+<!---
+### Boundary Condition & Function Parametrization
 
-<p>For any consistency function $f(\cdot, \cdot)$, we must have $f(x_\epsilon, \epsilon) = x_\epsilon$, i.e., $f(\cdot, 
-\epsilon)$ being an identity function. This constraint is called the <em>boundary condition</em> <d-cite key="song2023consistency"></d-cite>.</p>
+For any consistency function $f(\cdot, \cdot)$, we must have $f(x_\epsilon, \epsilon) = x_\epsilon$, i.e., $f(\cdot, 
+\epsilon)$ being an identity function. This constraint is called the _boundary condition_ <d-cite key="song2023consistency"></d-cite>.
 
-<p>The boundary condition has to be met by all consistency models, as we have hinted before that much of the training relies
+The boundary condition has to be met by all consistency models, as we have hinted before that much of the training relies
 on the assumption that $p_\epsilon$ is borderline identical to $p_0$. However, it is also a big architectural
-constraint on consistency models.</p>
+constraint on consistency models.
 
-<p>For consistency models based on deep neural networks, there are two ways to implement this boundary condition almost
+For consistency models based on deep neural networks, there are two ways to implement this boundary condition almost
 for free <d-cite key="song2023consistency"></d-cite>. Suppose we have a free-form deep neural network $F_\theta (x, t)$ whose output has the same dimensionality
-as $x$.</p>
+as $x$.
 
-<p>1.) One way is to simply parameterize the consistency model as:</p>
+1.) One way is to simply parameterize the consistency model as:
 
-\[f_\theta (x, t) =
+$$
+f_\theta (x, t) =
 \begin{cases}
-x &amp; t = \epsilon \\
-F_\theta (x, t) &amp; t \in (\epsilon, T]
+x & t = \epsilon \\
+F_\theta (x, t) & t \in (\epsilon, T]
 \end{cases} \\
-\qquad \text{(27)}\]
+\qquad \text{(27)}
+$$
 
-<p>2.) Another method is to parameterize the consistency model using skip connections, that is:</p>
+2.) Another method is to parameterize the consistency model using skip connections, that is:
 
-\[f_\theta (x, t) = c_{\text{skip}} (t) x + c_{\text{out}} (t) F_\theta (x, t) \qquad \text{(28)}\]
+$$
+f_\theta (x, t) = c_{\text{skip}} (t) x + c_{\text{out}} (t) F_\theta (x, t) \qquad \text{(28)}
+$$
 
-<p>where $c_{\text{skip}} (t)$ and $c_{\text{out}} (t)$ are differentiable functions such that $c_{\text{skip}} (\epsilon) = 1$,
-and $c_{\text{out}} (\epsilon) = 0$.</p>
+where $c_{\text{skip}} (t)$ and $c_{\text{out}} (t)$ are differentiable functions such that $c_{\text{skip}} (\epsilon) = 1$,
+and $c_{\text{out}} (\epsilon) = 0$.
 
-<p>This way, the consistency model is differentiable at $t = \epsilon$ if $F_\theta (x, t)$, $c_{\text{skip}} (t)$, $c_{\text{out}} (t)$
-are all differentiable, which is critical for training continuous-time consistency models.</p>
+This way, the consistency model is differentiable at $t = \epsilon$ if $F_\theta (x, t)$, $c_{\text{skip}} (t)$, $c_{\text{out}} (t)$
+are all differentiable, which is critical for training continuous-time consistency models.
 
-<p>In our work, we utilize the latter methodology in order to satisfy the boundary condition.</p>
+In our work, we utilize the latter methodology in order to satisfy the boundary condition.
+--->
 
 <h3 id="sampling">Sampling</h3>
 
@@ -839,7 +845,7 @@ samples on the data distribution $\hat{x_{\epsilon}}$ $= f_\theta(\hat{x_T}, T)$
     </div>
 </div>
 
-<!--- 2100 words --->
+<!--- 2000 words --->
 
 <h3 id="training-consistency-models">Training Consistency Models</h3>
 
@@ -866,43 +872,19 @@ $\mathcal{L}_{CT}^N (\theta, \theta^-)$ = $\mathbb{E}[\lambda(t_n)d(f_\theta(x +
 <p>Crucially, $\mathcal{L}(\theta, \theta^-)$ only depends on the online network $f_\theta$, and the target network
 $f_{\theta^-}$, while being completely agnostic to diffusion model parameters $\phi$.</p>
 
-<h2 id="results">Results</h2>
-
-<h3 id="edm-consistency-model-results">EDM Consistency Model Results</h3>
-
-<p>We were able to successfully train EDM as a consistency model in isolation. We achieved nearly identical training
-loss curves, both in magnitude of the NLL and convergence rate as shown in figure 9:</p>
-
-<p>For validation and testing, we compared samples from an EMA model against the corresponding ground truth sample,
-since consistency models are trained to produce samples directly on the data distribution. 
-We achieved similar convergence rates for both val and test losses but with a different magnitude due to the 
-changed objective as show on figure 10:</p>
-
-<p>These results were obtained using the same EGNN back-bone, batch-size, 
-learning rate, and other relevant hyperparameters, only differing in the number of epochs completed.
-However, given the displayed loss curves, we have little reason to believe that training the consistency model
-for longer would be beneficial.</p>
-
-<p>Using single-step sampling with consistency models, we were only able to reliably achieve around 15% atom stability in
-the best case scenario with a large batch size show is figure 11. This low atom stability number could be due to the architecture and the way one step generation works in consistency models. We leave as a future expirement to try different values of sampling other than one step. We were not successful in generating any stable molecules using
-the consistency model.</p>
-
-<p>The controlled trade-off between speed and sample quality should be possible with multi-step sampling,
-however, all attempts to make multi-step sampling work resulted in decreased atom stability. We further 
-discuss the set-up and hypothesise why this did not work in the next section.</p>
-
 <h2 id="conclusion">Conclusion</h2>
 
-<p>In conclusion, we largely succeeded in reimplementing the EDM paper in JAX, leading to faster runtime, but 
-un-competitive results. Similarly, we implemented and trained EDM as a consistency model, allowing us to 
-generate new molecules much in a single step, however, we did not manage to make multi-step generation work. 
-As such, the consistency model also did not achieve competitive results.</p>
+<p>We were able to successfully train EDM as a consistency model in isolation, achieving nearly identical training
+and validation loss as the original implementation. However, using single-step sampling with consistency models, 
+we were only able to reliably achieve around 15% atom stability in the best case scenario, compared with
+over 90% for the default EDM.</p>
 
-<p>Although the results are not close to state of the art, we are confident that these methods can achieve better performance 
-with more development time, and in their current state, can serve as a good proof of concept. A natural direction
-for future research is to continue investigating the poor performance of the current implementation and fix the
-underlying issues and suspected bugs to get competitive results.</p>
+<p>Using multi-step sampling should in theory improve these results, yielding competitive results as the number of
+steps increases. However, we observed no such improvement, hinting at possible bugs in out multi-step sampling code.</p>
 
+<p>We also implemented the EDM in JAX, leading to faster runtime, but surprisingly un-competitive results.</p>
+
+<!--- 2300 words --->
 
       </d-article>
 
