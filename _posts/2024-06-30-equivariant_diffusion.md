@@ -8,14 +8,7 @@ date: 2024-06-30
 featured: true
 
 authors:
-  - name: Martin Sedlacek*
-    url: https://martin-sedlacek.com/
-    affiliations:
-      name: University of Amsterdam
-  - name: Antonios Vozikis*
-    url: "#"
-    affiliations:
-      name: Vrije Universiteit Amsterdam
+  - name: Anonymous
 
 bibliography: equivariant_diffusion/2024-06-30-equivariant_diffusion.bib
 
@@ -57,13 +50,13 @@ computationally expensive <d-cite key="song2023consistency"></d-cite>. We aim to
 significantly faster as a Consistency Model <d-cite key="song2023consistency"></d-cite>, enabling it to generate samples 
 with just a single step.
 
-As demonstrated in several other domains, scaling model architectures to more parameters to take advantage of 
-increasingly larger compute available, can drastically improve performance <d-cite key="dosovitskiy2020image"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="krizhevsky2012imagenet"></d-cite>.
-This has trend has been shown in language <d-cite key="brown2020language"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="touvron2023llama"></d-cite>, 
-images and video generation <d-cite key="liu2024sora"></d-cite><d-cite key="ramesh2022hierarchical"></d-cite><d-cite key="rombach2022high"></d-cite><d-cite key="saharia2022photorealistic"></d-cite>, 
-as well as training Graph Neural Networks (GNN) <d-cite key="sriram2022towards"></d-cite>. We hope that using 
-Consistency Models can be a step towards enabling larger GNN backbones, eventually observing similar scaling
-effects in domains such as molecule generation.
+As demonstrated in several other domains, scaling model parameters to take advantage of increasingly larger 
+compute availability, can drastically improve performance <d-cite key="dosovitskiy2020image"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="krizhevsky2012imagenet"></d-cite>.
+This trend has been shown in language <d-cite key="brown2020language"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="touvron2023llama"></d-cite>, 
+image and video generation <d-cite key="liu2024sora"></d-cite><d-cite key="ramesh2022hierarchical"></d-cite><d-cite key="rombach2022high"></d-cite><d-cite key="saharia2022photorealistic"></d-cite>, 
+and to an extent, in training Graph Neural Networks (GNN) <d-cite key="sriram2022towards"></d-cite>. 
+We hope that using Consistency Models can be a step towards enabling larger GNN backbones, eventually observing 
+similar scaling effects in domains such as molecule generation.
 
 <!--- 260 words --->
 
@@ -486,7 +479,11 @@ where $\mathbf{z} \sim \mathcal{N}(0, I)$.
 Crucially, $\mathcal{L}(\theta, \theta^-)$ only depends on the online network $f_\theta$, and the target network
 $f_{\theta^-}$, while being completely agnostic to diffusion model parameters $\phi$.
 
-## Conclusion
+## Experiments
+
+TBA
+
+## Discussion
 
 Consistency models are able to reduce the number of steps during de-noising up to just a single step, significantly 
 speeding up the sampling process, while allowing for a controlled trade-off between speed and sample quality.
