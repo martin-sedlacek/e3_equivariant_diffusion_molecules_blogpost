@@ -76,58 +76,63 @@ the overall carbon footprint.
 <!--- We also note that these performance improvements are, in theory at least, not exclusive to EDM or GNNs. Many other ML 
 models might be improved through a JAX reimplementation and many diffusion models can be trained as a consistency model. --->
 
-## Preliminary Concepts
+<br>
 
-#### Groups and Equivariance for molecules
+#### Briefly on Equivariance for molecules
 
-Equivariance is a property of certain functions, which ensures that the function's output transforms in a predictable manner under collections of transformations. This property is valuable in molecular modeling, where it can be used to ensure that the properties of molecular structures are consistent with their symmetries in the real world. specifically, we are interested in ensuring that some structure is preserved in the representation of the molecule when three types of transformations are applied to it: translation, rotation, and reflection. 
+Equivariance is a property of certain functions, which ensures that their output transforms in a predictable manner under 
+collections of transformations. This property is valuable in molecular modeling, where it can be used to ensure that the 
+properties of molecular structures are consistent with their symmetries in the real world. Specifically, we are interested 
+in ensuring that structure is preserved in the representation of a molecule under three types of transformations: 
+_translation, rotation, and reflection_. 
 
-Formally, function $f$ is said to be equivariant to the action of a group $G$ if: 
+Formally, we say that a function $f$ is equivariant to the action of a group $G$ if: 
 
 $$T_g(f(x)) = f(S_g(x)) \qquad \text{(1)}$$ 
 
-for all $g ∈ G$, where $S_g,T_g$ are linear representations related to the group element $g$ <d-cite key="serre1977linear"></d-cite>. The three transformations we are interested in form the Euclidean group $E(3)$, for which $S_g$ and $T_g$ can be represented by a translation $t$ and an orthogonal matrix $R$ that rotates or reflects coordinates. $f$ is then equivariant to a rotation or reflection $R$ if: 
+for all $g \in G$, where $S_g,T_g$ are linear representations related to the group element $g$ <d-cite key="serre1977linear"></d-cite>.
+
+The three transformations: _translation, rotation, and reflection_, form the Euclidean group $E(3)$, for which $S_g$ and 
+$T_g$ can be represented by a translation $t$ and an orthogonal matrix $R$ that rotates or reflects coordinates. 
+
+A function $f$ is then equivariant to a rotation or reflection $R$ if: 
 
 $$Rf(x) = f(Rx) \qquad \text{(2)}$$
 
 meaning transforming its input results in an equivalent transformation of its output. <d-cite key="hoogeboom2022equivariant"></d-cite>
 
-#### E(n) Equivariant Graph Neural Networks (EGNNs)
+<br>
 
+#### Introducing Equivariant Graph Neural Networks (EGNNs)
+Molecules can very naturally be represented with graph structures, where the nodes are the atoms and edges their bonds. 
+The features of each atom, such as its element type or charge can be encoded into an embedding $\mathbf{h}_i \in \mathbb{R}^d$ 
+alongside with its 3D position $\mathbf{x}_i \in \mathbb{R}^3$.
 
-Generating molecules naturally leans itself into graph representation, with the nodes representing atoms within the
-molecules, and edges representing their bonds. The features $\mathbf{h}_i \in \mathbb{R}^d$ of each atom, such as
-element type, can then be encoded into the embedding of a node alongside it's position $\mathbf{x}_i \in \mathbb{R}^3$. The previously explained E(3) equivariance property can be used as an inductive prior that improves generalization, and EGNNs are a powerful tool which injects these priors about molecules into the model architecture itself, as the EDM paper had demonstrated <d-cite key="hoogeboom2022equivariant"></d-cite>. Their usefulness is further supported
-by EGNNs beating similar non-equivariant Graph Convolution Networks on molecular generation tasks <d-cite key="verma2022modular"></d-cite>.
+To learn and operate on such structured inputs, Graph Neural Networks (GNNs) (TBA - citation) have been developed, 
+operating with the message passing paradigm (TBA - citation). This architecture consists of several layers, 
+each of which updates the representation of each node, using the information in nearby nodes.
 
-The E(n) EGNN is a special type of message-passing Graph Neural Network (GNN) <d-cite key="gilmer2017neural"></d-cite> with explicit rotation and translation equivariance baked in. A traditional message-passing GNN consists of several layers, each of which
-updates the representation of each node, using the information in nearby nodes.
-
-<!-- <p align="center">
-  <img src="readme_material/message_passing.png" alt="Diffusion in nature" width="300" />
-</p>
-<p align="center">
-Figure 1: Visualization of a message passing network (Credit: Yuki Asano)
-</p> -->
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure>
             {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/message_passing.png" class="img-fluid rounded z-depth-1" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure 1: Message passing</figcaption>
+            <figcaption class="text-center mt-2">Figure 1: Visualization of a message passing network</figcaption>
         </figure>
     </div>
 </div>
 
+The previously mentioned E(3) equivariance property of molecules can be injected as an inductive prior into to the model 
+architecture of a message passing graph neural network, resulting in an E(3) EGNN. This property improves generalisation <d-cite key="hoogeboom2022equivariant"></d-cite> and also beats similar non-equivariant Graph Convolution Networks on 
+the molecular generation task <d-cite key="verma2022modular"></d-cite>.
 
-The EGNN specifically contains _equivariant_ convolution layers:
+The EGNN is built with _equivariant_ graph convolution layers (EGCLs):
 
 $$
 \mathbf{x}^{l+1},\mathbf{h}^{l+1}=EGCL[ \mathbf{x}^l, \mathbf{h}^l ] \qquad \text{(3)}
 $$
 
 
-The EGCL layer is defined through the formulas:
-
+An EGCL layer can be formally defined by:
 
 <div align="center">
 
@@ -145,20 +150,19 @@ $$
 
 </div>
 
-
-
 where $h_l$ represents the feature $h$ at layer $l$, $x_l$ represents the coordinate at layer $l$ and 
-$$d_{ij}= ||x_i^l-x^l_j||_2$$ is the Euclidean distance between nodes $$v_i$$ and $$v_j$$. A fully connected neural 
-networks is used to learn the functions $$\phi_e$$, $$\phi_x$$, and $$\phi_h$$. At each layer, a message $$m_{ij}$$ 
-is computed from the previous layer's feature representation. Using the previous feature and the sum of these messages, 
-the model computes the next layer's feature representation.
+$$d_{ij}= ||x_i^l-x^l_j||_2$$ is the Euclidean distance between nodes $$v_i$$ and $$v_j$$. 
+
+A fully connected neural network is used to learn the functions $$\phi_e$$, $$\phi_x$$, and $$\phi_h$$. 
+At each layer, a message $$m_{ij}$$ is computed from the previous layer's feature representation. 
+Using the previous feature and the sum of these messages, the model computes the next layer's feature representation.
 
 This architecture then satisfies translation and rotation equivariance. Notably, the messages depend on the distance 
 between the nodes and these distances are not changed by isometric transformations.
 
+## Diffusion Models
 
-
-## Equivariant Diffusion Models
+<!--- TBA - reduce text in this section ---->
 
 Diffusion models <d-cite key="sohl2015deep"></d-cite> are deeply rooted within the principles of physics, where the process describes particles moving 
 from an area of higher concentration to an area of lower concentration - a process governed by random, stochastic 
@@ -194,17 +198,14 @@ inspired scientists to create models of this behaviour. When applied to generati
 </style>
 
 
-
-
-
-
 ### Denoising Diffusion Probabilistic Models (DDPM)
 
-One of the most widely-used and powerful diffusion models is the Denoising Diffusion Probabilistic Model (DDPM) <d-cite key="ho2020denoising"></d-cite>. In this model, the data is progressively noised and then the model learns to reverse this process, effectively "denoising". This process allows us to generate new samples from pure noise.
+One of the most widely-used and powerful diffusion models is the Denoising Diffusion Probabilistic Model (DDPM) <d-cite key="ho2020denoising"></d-cite>. 
+In this model, the data is progressively noised and then the model learns to reverse this process, effectively "denoising". 
+This process allows us to generate new samples from pure noise.
+
 
 ### Forward diffusion process ("noising")
-
-
 
 In DDPMs the forward noising process is parameterized by a Markov process, where transition at each time step $t$ adds
 Gaussian noise with a variance of $\beta_t \in (0,1)$. We formally write this transition as:
