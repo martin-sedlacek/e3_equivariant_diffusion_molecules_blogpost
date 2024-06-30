@@ -221,6 +221,8 @@ $$
 
 where $v_T \sim \mathcal{N}(0, \mathbf{I})$ is a sample from the pure Gaussian noise.
 
+<!--- 1000 words --->
+
 ### Enforcing E(3) equivariance
 <!--- check rotations and reflections or jsut rotations? --->
 Equivariance to rotations and reflections effectively means that if any orthogonal rotation matrix $\mathbf{R}$ is 
@@ -275,112 +277,51 @@ The EDM authors bypass this with a clever trick of always re-centering the gener
 $\mathbf{0}$ and further show that these $\mathbf{0}$-centered distributions lie on a linear subspace that can reliably be used 
 for equivariant diffusion <d-cite key="hoogeboom2022equivariant"></d-cite><d-cite key="xu2022geodiff"></d-cite>.
 
+<!---
 We hypothesize that, intuitively, moving a coordinate from e.g. 5 to 6 on any given axis is the same as moving from 
 8 to 9. But EDM predicts the actual atom positions, not a relative change, hence the objective needs to adjusted. 
 By constraining the model to this "subspace" of options where the center of the molecule is always at $\mathbf{0}$, 
 the absolute positions are effectively turned into relative ones w.r.t. to the center of the molecule, hence the model 
 can now learn relationships that do not depend on the absolute position of the whole molecule in 3D space.
+--->
 
-### How to train Diffusion Models?
+<!--- 1300 words --->
 
-The training objective of diffusion-based generative models amounts to **"maximizing the log-likelihood of the sample generated (at the end of the reverse process) which belongs to the original data distribution."**
+### How to train the EDM?
 
-To maximize the log-likelihood of a gaussian distribution, we need to try and find the parameters of the distribution (μ, σ²) such that it maximizes the _likelihood_ of the (generated) data belonging to the same data distribution as the original data.
+The training objective of diffusion-based generative models amounts to **"maximizing the log-likelihood of the 
+sample on the original data distribution."**
 
-To train our neural network, we define the loss function (L) as the objective function’s negative. So a high value for p_θ(x₀), means low loss and vice versa.
-
-$$
-p_{\theta}(x_{0}) := \int p_{\theta}(x_{0:T})dx_{1:T} \qquad \text{(12)}
-$$
-
-$$
-L = -\log(p_{\theta}(x_{0})) \qquad \text{(13)}
-$$
-
-However, this is intractable because we need to integrate over a very high dimensional (pixel) space for continuous values over T timesteps. Instead, take inspiration from VAEs and find a new, tractable training objective using a variational lower bound (VLB), also known as _Evidence lower bound_ (ELBO). We have :
-
-$$
-\mathbb{E}[-\log p_{\theta}(x_{0})] \leq \mathbb{E}_{q} \left[ -\log \frac{p_{\theta}(x_{0:T})}{q(x_{1:T} | x_{0})} \right] = \mathbb{E}_{q} \left[ -\log p(X_{T}) - \sum_{t \geq 1} \log \frac{p_{\theta}(x_{t-1} | x_{t})}{q(x_{t} | x_{t-1})} \right] =: L \qquad \text{(14)}
-$$
-
-After some simplification, we arrive at this final $$L_{vlb}$$ - Variational Lower Bound loss term:
-
-$$
-\mathbb{E}_{q} \left[ D_{KL}(q(x_{T}|x_{0}) \parallel p(x_{T})) \bigg\rvert_{L_{T}} + \sum_{t > 1} D_{KL}(q(x_{t-1}|x_{t}, x_{0}) \parallel p_{\theta}(x_{t-1}|x_{t})) \bigg\rvert_{L_{t-1}} - \log p_{\theta}(x_{0}|x_{1}) \bigg\rvert_{L_{0}} \right] \qquad \text{(15)}
-$$
-
-We can break the above $$L_{vlb}$$ loss term into individual timesteps as follows:
-
-$$
-L_{vlb} := L_{0} + L_{1} + \cdots + L_{T-1} + L_{T} \qquad \text{(16)}
-$$
-
-$$
-L_{0} := - \log p_{\theta}(x_{0}|x_{1}) \qquad \text{(17)}
-$$
-
-$$
-L_{t-1} := D_{KL}(q(x_{t-1}|x_{t}, x_{0}) \parallel p_{\theta}(x_{t-1}|x_{t})) \qquad \text{(18)}
-$$
-
-$$
-L_{T} := D_{KL}(q(x_{T}|x_{0}) \parallel p(x_{T})) \qquad \text{(19)}
-$$
-
-The terms ignored are:
-
-1. **L₀** – Because the original authors got better results without this.
-2. **Lₜ** – This is the _"KL divergence"_ between the distribution of the final latent in the forward process and the first latent in the reverse process. Because there are no neural network parameters we can't do anything with it so we just ignore from optimization.
-
-So **Lₜ₋₁** is the only loss term left which is a KL divergence between the _“posterior”_ of the forward process, and the parameterized reverse diffusion process. Both terms are gaussian distributions as well.
+During training, our model learns to approximate the parameters of a posterior distributions at the next time
+step by minimizing the KL divergence between this estimate and the ground truth, which is equivalent
+to minimizing the negative log likelihood (TBA - reference).
 
 $$
 L_{vlb} := L_{t-1} := D_{KL}(q(x_{t-1}|x_{t}, x_{0}) \parallel p_{\theta}(x_{t-1}|x_{t})) \qquad \text{(20)}
 $$
 
-The term q(xₜ₋₁|xₜ, x₀) is referred to as _“forward process posterior distribution.”_
 
-During training, our DL model learns to approximate the parameters of this posterior in order to minimize the KL divergence.
+The EDM adds a caveat that the predicted distributions must be calibrated to have center of gravity at $\mathbf{0}$, 
+in order to ensure equivariance.
 
-
-### Training the EDM
-
-As described in the DDPM section and following other modern diffusion models, an EGNN is trained in the standard 
-diffusion framework to predict the noise at each time step of the reverse process, which is then used to iteratively 
-reconstruct samples on the data distribution by adding signal to pure noise sampled from the Gaussian at time $T$. 
-With the caveat that the predicted noise must be calibrated to have center of gravity at $\mathbf{0}$ to ensure 
-equivariance as we have described earlier. It is worth explicitly noting that the noise added during the forward 
-diffusion process must also be equivariant, hence it is sampled from a $\mathbf{0}$-mean Gaussian distribution with 
-a diagonal covariance matrix.
-
-Using the KL divergence loss term introduced in DDPM with the EDM model parametrization simplifies the loss function to:
+Using the KL divergence loss term with the EDM model parametrization simplifies the loss function to:
 
 $$
 \mathcal{L}_t = \mathbb{E}_{\epsilon_t \sim \mathcal{N}_{x_h}(0, \mathbf{I})} \left[ \frac{1}{2} w(t) \| \epsilon_t - \hat{\epsilon}_t \|^2 \right] \qquad \text{(22)}
 $$
 
-
-
-
-
-
-
-
 where 
-$\( w(t) = \left(1 - \frac{\text{SNR}(t-1)}{\text{SNR}(t)}\right) \)$ and $\( \hat{\epsilon}_t = \phi(z_t, t) \)$.
+$ w(t) = \left(1 - \frac{\text{SNR}(t-1)}{\text{SNR}(t)}\right)$ and $ \hat{\epsilon}_t = \phi(z_t, t)$.
 
-However, the EDM authors found that the model had better empirical performance with a constant $w(t) = 1$, disregarding the
-signal-to-noise ration (SNR). Thus, the loss term effectively simplifies to a MSE.
-
-Since coordinates and categorical features are on different scales, the EDM authors also found they achieved better performance when scaling the inputs before prediction and then rescaling them back after.
-
+The EDM authors found that the model performs best with a constant $w(t) = 1$, thus effectively simplifying 
+the loss function to an MSE. Since coordinates and categorical features are on different scales, it was also 
+found that scaling the inputs before inference and then rescaling them back also improves performance.
 
 ## Consistency Models
 
-
-Although diffusion Models have significantly advanced the fields of image, audio, and video generation, but they depend on an iterative de-noising process to generate samples, which can be very slow <d-cite key="song2023consistency"></d-cite>. To generate good samples, a lot of steps are often required (sometimes in the 1000s). This issue is exacerbated when dealing with high dimensional data where all operations are even more computationally expensive. As hinted in the introduction, we look at Consistency models in our work to bypass this bottleneck.
-
-This is where Consistency Models really shine. This new family of models reduces the number of steps during de-noising up to just a single step generation, significantly speeding up this process, while allowing for a controlled trade-off between speed and sample quality.
+As previously mentioned, diffusion models are bottlenecked by the sequential denoising process <d-cite key="song2023consistency"></d-cite>.
+Consistency Models reduce the number of steps during de-noising up to just a single step, significantly speeding up 
+this costly process, while allowing for a controlled trade-off between speed and sample quality.
 
 ### How does it work?
 
