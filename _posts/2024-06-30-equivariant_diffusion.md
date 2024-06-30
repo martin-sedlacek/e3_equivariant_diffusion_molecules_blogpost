@@ -15,8 +15,9 @@ bibliography: equivariant_diffusion/2024-06-30-equivariant_diffusion.bib
 toc:
   - name: Introduction
   - name: Equivariant Diffusion Models (EDM)
-  - name: Enhancements with Consistency Models
-  - name: Conclusion
+  - name: Consistency Models
+  - name: Experiments
+  - name: Discussion
 
 
 _styles: >
@@ -71,16 +72,24 @@ _translation, rotation, and reflection_.
 
 Formally, we say that a function $f$ is equivariant to the action of a group $G$ if: 
 
-$$T_g(f(x)) = f(S_g(x)) \qquad \text{(1)}$$ 
+$$
+\begin{align}
+T_g(f(x)) = f(S_g(x))
+\end{align}
+$$ 
 
 for all $g \in G$, where $S_g,T_g$ are linear representations related to the group element $g$ <d-cite key="serre1977linear"></d-cite>.
 
-The three transformations: _translation, rotation, and reflection_, form the Euclidean group $E(3)$, for which $S_g$ and 
+The three transformations: _translation, rotation, and reflection_, form the Euclidean group $E(3)$, which is the group of all aforementioned isometries in three-dimensional space, for which $S_g$ and 
 $T_g$ can be represented by a translation $t$ and an orthogonal matrix $R$ that rotates or reflects coordinates. 
 
 A function $f$ is then equivariant to a rotation or reflection $R$ if: 
 
-$$Rf(x) = f(Rx) \qquad \text{(2)}$$
+$$
+\begin{align}
+Rf(x) = f(Rx)
+\end{align}
+$$
 
 meaning transforming its input results in an equivalent transformation of its output. <d-cite key="hoogeboom2022equivariant"></d-cite>
 
@@ -98,14 +107,37 @@ To learn and operate on such structured inputs, Graph Neural Networks (GNNs) (TB
 operating with the message passing paradigm (TBA - citation). This architecture consists of several layers, 
 each of which updates the representation of each node, using the information in nearby nodes.
 
+<style>
+.custom-img-size {
+    width: 50%; /* Adjust width as needed */
+    height: auto; /* Maintains aspect ratio */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.custom-img-size-2 {
+
+    width: 60%; /* Adjust width as needed */
+    height: auto; /* Maintains aspect ratio */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+</style>
+
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/message_passing.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/message_passing.png" class="img-fluid rounded z-depth-1 custom-img-size" zoomable=true %}
             <figcaption class="text-center mt-2">Figure 1: Visualization of a message passing network</figcaption>
         </figure>
     </div>
 </div>
+
+
+
+
 
 The previously mentioned E(3) equivariance property of molecules can be injected as an inductive prior into to the model 
 architecture of a message passing graph neural network, resulting in an E(3) EGNN. This property improves generalisation <d-cite key="hoogeboom2022equivariant"></d-cite> and also beats similar non-equivariant Graph Convolution Networks on 
@@ -114,7 +146,9 @@ the molecular generation task <d-cite key="verma2022modular"></d-cite>.
 The EGNN is built with _equivariant_ graph convolution layers (EGCLs):
 
 $$
-\mathbf{x}^{l+1},\mathbf{h}^{l+1}=EGCL[ \mathbf{x}^l, \mathbf{h}^l ] \qquad \text{(3)}
+\begin{align}
+\mathbf{x}^{l+1},\mathbf{h}^{l+1}=EGCL[ \mathbf{x}^l, \mathbf{h}^l ]
+\end{align}
 $$
 
 
@@ -123,15 +157,21 @@ An EGCL layer can be formally defined by:
 <div align="center">
 
 $$
-\mathbf{m}_{ij} = \phi_e(\mathbf{h}_i^l, \mathbf{h}_j^l, d^2_{ij}) \qquad \text{(4)}
+\begin{align}
+\mathbf{m}_{ij} = \phi_e(\mathbf{h}_i^l, \mathbf{h}_j^l, d^2_{ij})
+\end{align}
 $$
 
 $$
-\mathbf{h}_i^{l+1} = \phi_h\left(\mathbf{h}_i^l, \sum_{j \neq i} \tilde{e}_{ij} \mathbf{m}_{ij}\right) \qquad \text{(5)}
+\begin{align}
+\mathbf{h}_i^{l+1} = \phi_h\left(\mathbf{h}_i^l, \sum_{j \neq i} \tilde{e}_{ij} \mathbf{m}_{ij}\right) 
+\end{align}
 $$
 
 $$
-\mathbf{x}_i^{l+1} = \mathbf{x}_i^l + \sum_{j \neq i} \frac{\mathbf{x}_i^l \mathbf{x}_j^l}{d_{ij} + 1} \phi_x(\mathbf{h}_i^l, \mathbf{h}_j^l, d^2_{ij}) \qquad \text{(6)}
+\begin{align}
+\mathbf{x}_i^{l+1} = \mathbf{x}_i^l + \sum_{j \neq i} \frac{\mathbf{x}_i^l \mathbf{x}_j^l}{d_{ij} + 1} \phi_x(\mathbf{h}_i^l, \mathbf{h}_j^l, d^2_{ij})
+\end{align}
 $$
 
 </div>
@@ -148,7 +188,7 @@ between the nodes and these distances are not changed by isometric transformatio
 
 <!--- 600 words --->
 
-## Equivariant Diffusion Model (EDM)
+## Equivariant Diffusion Models (EDM)
 This section introduces diffusion models and describes how their predictions can be made E(3) equivariant. 
 The categorical properties of atoms are already invariant to E(3) transformations, hence, we are only 
 interested in enforcing property on the sampled atom positions.
@@ -163,7 +203,7 @@ trained to learn a reverse process that reconstructs samples on the data distrib
     <div class="col-sm mt-3 mt-md-0">
         <figure>
             {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/ddpm_figure.png" class="img-fluid rounded z-depth-1" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure 3: The Markov process of forward and reverse diffusion <d-cite key="ho2020denoising"></d-cite></figcaption>
+            <figcaption class="text-center mt-2">Figure 2: The Markov process of forward and reverse diffusion <d-cite key="ho2020denoising"></d-cite></figcaption>
         </figure>
     </div>
 </div>
@@ -174,7 +214,7 @@ where transition at each time step $t$ adds Gaussian noise with a variance of $\
 
 $$
 \begin{align}
-q\left( x_t \mid x_{t-1} \right) := \mathcal{N}\left( x_t ; \sqrt{1-\beta_t} x_{t-1}, \beta_t \mathbf{I} \right) & \qquad \text{(7)}
+q\left( x_t \mid x_{t-1} \right) := \mathcal{N}\left( x_t ; \sqrt{1-\beta_t} x_{t-1}, \beta_t \mathbf{I} \right) 
 \end{align}
 $$
 
@@ -182,20 +222,28 @@ The whole Markov process leading to time step $T$ is given as a chain of these t
 
 $$
 \begin{align}
-q\left( x_1, \ldots, x_T \mid x_0 \right) := \prod_{t=1}^T q \left( x_t \mid x_{t-1} \right) & \qquad \text{(8)}
+q\left( x_1, \ldots, x_T \mid x_0 \right) := \prod_{t=1}^T q \left( x_t \mid x_{t-1} \right)
 \end{align}
 $$
 
 The "reverse" process transitions are unknown and need to be approximated using a neural network parametrized by $\theta$:
 
-$$p_\theta \left( x_{t-1} \mid x_t \right) := \mathcal{N} \left( x_{t-1} ; \mu_\theta \left( x_t, t \right), \Sigma_\theta \left( x_t, t \right) \right) \qquad \text{((9))}$$
+$$
+\begin{align}
+p_\theta \left( x_{t-1} \mid x_t \right) := \mathcal{N} \left( x_{t-1} ; \mu_\theta \left( x_t, t \right), \Sigma_\theta \left( x_t, t \right) \right)
+\end{align}
+$$
 
 Because we know the dynamics of the forward process, the variance $\Sigma_\theta \left( x_t, t \right)$ at time $t$ is 
 known and can be fixed to $\beta_t \mathbf{I}$.
 
 The predictions then only need to obtain the mean $\mu_\theta \left( x_t, t \right)$, given by:
 
-$$\mu_\theta \left( x_t, t \right) = \frac{1}{\sqrt{\alpha_t}} \left( x_t - \frac{\beta\_t}{\sqrt{1 - \bar{\alpha}\_t}} \epsilon\_\theta \left( x_t, t \right) \right) \qquad \text{(10)}$$
+$$
+\begin{align}
+\mu_\theta \left( x_t, t \right) = \frac{1}{\sqrt{\alpha_t}} \left( x_t - \frac{\beta\_t}{\sqrt{1 - \bar{\alpha}\_t}} \epsilon\_\theta \left( x_t, t \right) \right)
+\end{align}
+$$
 
 where $\alpha_t = \Pi_{s=1}^t \left( 1 - \beta_s \right)$.
 
@@ -203,7 +251,7 @@ Hence, we can directly predict $x_{t-1}$ from $x_{t}$ using the network $\theta$
 
 $$
 \begin{align}
-x_{t-1} = \frac{1}{\sqrt{1 - \beta_t}} \left( x_t - \frac{\beta_t}{\sqrt{1 - \alpha_t}} \epsilon_\theta \left( x_t, t \right) \right) + \sqrt{\beta_t} v_t & \qquad \text{(11)}
+x_{t-1} = \frac{1}{\sqrt{1 - \beta_t}} \left( x_t - \frac{\beta_t}{\sqrt{1 - \alpha_t}} \epsilon_\theta \left( x_t, t \right) \right) + \sqrt{\beta_t} v_t
 \end{align}
 $$
 
@@ -220,7 +268,11 @@ applied to a sample $$\mathbf{x}_t$$ at any given time step $t$, we should still
 In other words, the likelihood of this next best sample does not depend on the molecules rotation and the probability 
 distribution for each transition in the Markov Chain is roto-invariant:
 
-$$p(y|x) = p(\mathbf{R}y|\mathbf{R}x) \qquad \text{(21)}$$
+$$
+\begin{align}
+p(y|x) = p(\mathbf{R}y|\mathbf{R}x)
+\end{align}
+$$
 
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
@@ -236,7 +288,7 @@ $$p(y|x) = p(\mathbf{R}y|\mathbf{R}x) \qquad \text{(21)}$$
 </div>
 <div class="row">
     <div class="col text-center mt-3">
-        <p>Figure 5: Examples of 2D roto-invariant distributions</p>
+        <p>Figure 3: Examples of 2D roto-invariant distributions</p>
     </div>
 </div>
 
@@ -253,7 +305,7 @@ Furthermore, if $x \sim p(x)$ is invariant to a group, and the transition probab
 are equivariant, then the marginal distribution of $y$ at any time step $t$ is also invariant to that group <d-cite key="xu2022geodiff"></d-cite>.
 
 Since the underlying EGNN already ensures equivariance, the initial sampling distribution can easily be constrained 
-to something roto-invariant, such as a simple mean zero Gaussian with a diagonal covariance matrix, as seen in Figure 5 (left).
+to something roto-invariant, such as a simple mean zero Gaussian with a diagonal covariance matrix, as seen in Figure 3 (left).
 
 Translations require a few more tricks. It has been shown, that it is impossible to have non-zero distributions 
 invariant to translations <d-cite key="satorras2021en"></d-cite>. Intuitively, the translation invariance property 
@@ -285,7 +337,9 @@ step by minimizing the KL divergence between this estimate and the ground truth,
 to minimizing the negative log likelihood (TBA - reference).
 
 $$
-L_{vlb} := L_{t-1} := D_{KL}(q(x_{t-1}|x_{t}, x_{0}) \parallel p_{\theta}(x_{t-1}|x_{t})) \qquad \text{(20)}
+\begin{align}
+L_{vlb} := L_{t-1} := D_{KL}(q(x_{t-1}|x_{t}, x_{0}) \parallel p_{\theta}(x_{t-1}|x_{t}))
+\end{align}
 $$
 
 
@@ -295,7 +349,9 @@ in order to ensure equivariance.
 Using the KL divergence loss term with the EDM model parametrization simplifies the loss function to:
 
 $$
-\mathcal{L}_t = \mathbb{E}_{\epsilon_t \sim \mathcal{N}_{x_h}(0, \mathbf{I})} \left[ \frac{1}{2} w(t) \| \epsilon_t - \hat{\epsilon}_t \|^2 \right] \qquad \text{(22)}
+\begin{align}
+\mathcal{L}_t = \mathbb{E}_{\epsilon_t \sim \mathcal{N}_{x_h}(0, \mathbf{I})} \left[ \frac{1}{2} w(t) \| \epsilon_t - \hat{\epsilon}_t \|^2 \right]
+\end{align}
 $$
 
 where 
@@ -318,7 +374,11 @@ this costly process, while allowing for a controlled trade-off between speed and
 Song et al. <d-cite key="song2021score"></d-cite> have shown that the noising process in diffusion can be described with a Stochastic Differential Equation (SDE)
 transforming the data distribution $p_{\text{data}}(\mathbf{x})$ in time:
 
-$$d\mathbf{x}_t = \mathbf{\mu}(\mathbf{x}_t, t) dt + \sigma(t) d\mathbf{w}_t \qquad \text{(23)}$$
+$$
+\begin{align}
+d\mathbf{x}_t = \mathbf{\mu}(\mathbf{x}_t, t) dt + \sigma(t) d\mathbf{w}_t
+\end{align}
+$$
 
 Where $t$ is the time-step, $\mathbf{\mu}$ is the drift coefficient, $\sigma$ is the diffusion coefficient,
 and $\mathbf{w}_t$ is the stochastic component denoting standard Brownian motion. This stochastic component effectively
@@ -327,14 +387,16 @@ distribution at time $T$.
 
 Typically, this SDE is designed such that $p_T(\mathbf{x})$ at the final time-step $T$ is close to a tractable Gaussian.
 
+
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/bimodal_to_gaussian_plot.png" class="img-fluid rounded z-depth-1" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure 6: Illustration of a bimodal distribution evolving to a Gaussian over time</figcaption>
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/bimodal_to_gaussian_plot.png" class="img-fluid rounded z-depth-1 custom-img-size-2" zoomable=true %}
+            <figcaption class="text-center mt-2">Figure 4: Illustration of a bimodal distribution evolving to a Gaussian over time</figcaption>
         </figure>
     </div>
 </div>
+
 
 <!--- 1400 words --->
 
@@ -343,7 +405,11 @@ Typically, this SDE is designed such that $p_T(\mathbf{x})$ at the final time-st
 This SDE has a remarkable property, that a special ODE exists, whose trajectories sampled at $t$ are distributed
 according to $p_t(\mathbf{x})$ <d-cite key="song2023consistency"></d-cite>:
 
-$$d\mathbf{x}_t = \left[ \mathbf{\mu}(\mathbf{x}_t, t) - \frac{1}{2} \sigma(t)^2 \nabla \log p_t(\mathbf{x}_t) \right] dt \qquad \text{(24)}$$
+$$
+\begin{align}
+d\mathbf{x}_t = \left[ \mathbf{\mu}(\mathbf{x}_t, t) - \frac{1}{2} \sigma(t)^2 \nabla \log p_t(\mathbf{x}_t) \right] dt
+\end{align}
+$$
 
 This ODE is dubbed the Probability Flow (PF) ODE by Song et al. <d-cite key="song2023consistency"></d-cite> and corresponds to the different view of diffusion
 manipulating probability mass over time we hinted at in the beginning of the section.
@@ -353,7 +419,11 @@ Since we know the parametrization of the final distribution $p_T(\mathbf{x})$ to
 with $\mathbf{\mu}=0$ and $\sigma(t) = \sqrt{2t}$, this score model can be plugged into the equation (24) and the 
 expression reduces itself to an empirical estimate of the PF ODE:
 
-$$\frac{dx_t}{dt} = -ts\phi(\mathbf{x}_t, t) \qquad \text{(25)}$$
+$$
+\begin{align}
+\frac{dx_t}{dt} = -ts\phi(\mathbf{x}_t, t)
+\end{align}
+$$
 
 With $\mathbf{\hat{x}}_T$ sampled from the specified Gaussian at time $T$, the PF ODE can be solved backwards in time 
 to obtain a solution trajectory mapping all points along the way to the initial data distribution at time $\epsilon$.
@@ -362,7 +432,7 @@ to obtain a solution trajectory mapping all points along the way to the initial 
     <div class="col-sm mt-3 mt-md-0">
         <figure>
             {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/consistency_models_pf_ode.png" class="img-fluid rounded z-depth-1" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure 7: Solution trajectories of the PF ODE. <d-cite key="dosovitskiy2020image"></d-cite></figcaption>
+            <figcaption class="text-center mt-2">Figure 5: Solution trajectories of the PF ODE. <d-cite key="dosovitskiy2020image"></d-cite></figcaption>
         </figure>
     </div>
 </div>
@@ -377,9 +447,11 @@ is then given as a finite set of samples $\mathbf{x}_t$ for every discretized ti
 
 Given a solution trajectory $${\mathbf{x}_t}$$, we define the _consistency function_ as:
 
-<p align="center">
-$f:$ $(\mathbf{x}_t, t)$ $\to$ $\mathbf{x}_{\epsilon}$ 
-</p>
+$$
+\begin{align}
+f: (\mathbf{x}_t, t) \to \mathbf{x}_{\epsilon}
+\end{align}
+$$
 
 In other words, a consistency function always outputs a corresponding datapoint at time $\epsilon$, i.e. very close to
 the original data distribution for every pair ($\mathbf{x}_t$, t).
@@ -442,7 +514,7 @@ samples on the data distribution $\hat{x_{\epsilon}}$ $= f_\theta(\hat{x_T}, T)$
     <div class="col-sm mt-3 mt-md-0">
         <figure>
             {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/consistency_on_molecules.png" class="img-fluid rounded z-depth-1" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure 8: Visualization of PF ODE trajectories for molecule generation in 3D. <d-cite key="fan2023ecconf"></d-cite></figcaption>
+            <figcaption class="text-center mt-2">Figure 6: Visualization of PF ODE trajectories for molecule generation in 3D. <d-cite key="fan2023ecconf"></d-cite></figcaption>
         </figure>
     </div>
 </div>
@@ -455,7 +527,11 @@ samples on the data distribution $\hat{x_{\epsilon}}$ $= f_\theta(\hat{x_T}, T)$
 Consistency models can either be trained by "distillation" from a pre-trained diffusion model, or in "isolation" as a standalone generative model from scratch. In the context of our work, we focused only on the latter because the distillation approach has a hard requirement of using a pretrained score based diffusion. 
 In order to train in isolation we ned to leverage the following unbiased estimator:
 
-$$ \nabla \log p_t(x_t) = - \mathbb{E} \left[ \frac{x_t - x}{t^2} \middle| x_t \right] \qquad \text{(29)}$$
+$$
+\begin{align}
+\nabla \log p_t(x_t) = - \mathbb{E} \left[ \frac{x_t - x}{t^2} \middle| x_t \right]
+\end{align}
+$$
 
 where $x \sim p_\text{data}$ and $x_t \sim \mathcal{N}(x; t^2 I)$.
 
@@ -467,9 +543,12 @@ when using the Euler ODE solver in the limit of $N \to \infty$ <d-cite key="song
 Song et al. <d-cite key="song2023consistency"></d-cite> justify this with a further theorem in their paper and show that the consistency training objective (CT loss)
 can then be defined as:
 
-<p align="center">
-$\mathcal{L}_{CT}^N (\theta, \theta^-)$ = $\mathbb{E}[\lambda(t_n)d(f_\theta(x + t_{n+1} \mathbf{z}, t_{n+1}), f_{\theta^-}(x + t_n \mathbf{z}, t_n))]$ $\qquad \text{(30)}$
-</p>
+
+$$
+\begin{align}
+\mathcal{L}_{CT}^N (\theta, \theta^-) &= \mathbb{E}[\lambda(t_n)d(f_\theta(x + t_{n+1} \mathbf{z}, t_{n+1}), f_{\theta^-}(x + t_n \mathbf{z}, t_n))]
+\end{align}
+$$
 
 where $\mathbf{z} \sim \mathcal{N}(0, I)$.
 
