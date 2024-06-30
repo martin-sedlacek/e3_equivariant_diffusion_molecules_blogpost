@@ -618,14 +618,7 @@ With a fully trained consistency model $f_\theta(\cdot, \cdot)$, we can generate
 Gaussian $\hat{x_T}$ $\sim \mathcal{N}(0, T^2I)$ and propagating this through the consistency model to obtain
 samples on the data distribution $\hat{x_{\epsilon}}$ $= f_\theta(\hat{x_T}, T)$ with as little as one diffusion step.
 
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/consistency_on_molecules.png" class="img-fluid rounded z-depth-1" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure 8: Visualization of PF ODE trajectories for molecule generation in 3D. <d-cite key="fan2023ecconf"></d-cite></figcaption>
-        </figure>
-    </div>
-</div>
+
 
 
 ### Training Consistency Models
@@ -654,6 +647,19 @@ where $\mathbf{z} \sim \mathcal{N}(0, I)$.
 
 Crucially, $\mathcal{L}(\theta, \theta^-)$ only depends on the online network $f_\theta$, and the target network
 $f_{\theta^-}$, while being completely agnostic to diffusion model parameters $\phi$.
+
+\bigskip
+
+The original consistency training algorithm can be seen at Figure TBA
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/ct_algo.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            <figcaption class="text-center mt-2">Figure TBA: Consistency training in isolation pseudocode.</figcaption>
+        </figure>
+    </div>
+</div>
 
 <!---
 ### Visualization

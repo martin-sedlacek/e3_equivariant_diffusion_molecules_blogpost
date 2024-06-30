@@ -988,32 +988,6 @@ are all differentiable, which is critical for training continuous-time consisten
 Gaussian $\hat{x_T}$ $\sim \mathcal{N}(0, T^2I)$ and propagating this through the consistency model to obtain
 samples on the data distribution $\hat{x_{\epsilon}}$ $= f_\theta(\hat{x_T}, T)$ with as little as one diffusion step.</p>
 
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        <figure>
-            
-
-<figure>
-  <picture>
-    <!-- Auto scaling with imagemagick -->
-    <!--
-      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
-      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
-    -->
-    
-      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/consistency_on_molecules-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/consistency_on_molecules-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/consistency_on_molecules-1400.webp 1400w," sizes="95vw" type="image/webp"></source>
-    
-    <img src="/assets/img/2024-06-30-equivariant_consistency/consistency_on_molecules.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();">
-  </picture>
-
-  
-</figure>
-
-            <figcaption class="text-center mt-2">Figure 8: Visualization of PF ODE trajectories for molecule generation in 3D. <d-cite key="fan2023ecconf"></d-cite></figcaption>
-        </figure>
-    </div>
-</div>
-
 <h3 id="training-consistency-models">Training Consistency Models</h3>
 
 <p>Consistency models can either be trained by “distillation” from a pre-trained diffusion model, or in “isolation” as a standalone generative model from scratch. In the context of our work, we focused only on the latter because the distillation approach has a hard requirement of using a pretrained score based diffusion. 
@@ -1038,6 +1012,36 @@ $\mathcal{L}_{CT}^N (\theta, \theta^-)$ = $\mathbb{E}[\lambda(t_n)d(f_\theta(x +
 
 <p>Crucially, $\mathcal{L}(\theta, \theta^-)$ only depends on the online network $f_\theta$, and the target network
 $f_{\theta^-}$, while being completely agnostic to diffusion model parameters $\phi$.</p>
+
+<p>\bigskip</p>
+
+<p>The original consistency training algorithm can be seen at Figure TBA</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/ct_algo-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/ct_algo-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/ct_algo-1400.webp 1400w," sizes="95vw" type="image/webp"></source>
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/ct_algo.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();">
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Figure TBA: Consistency training in isolation pseudocode.</figcaption>
+        </figure>
+    </div>
+</div>
 
 <!---
 ### Visualization
