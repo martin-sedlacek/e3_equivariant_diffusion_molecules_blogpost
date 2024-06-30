@@ -15,8 +15,9 @@ bibliography: equivariant_diffusion/2024-06-30-equivariant_diffusion.bib
 toc:
   - name: Introduction
   - name: Equivariant Diffusion Models (EDM)
-  - name: Enhancements with Consistency Models
-  - name: Conclusion
+  - name: Consistency Models
+  - name: Experiments
+  - name: Discussion
 
 
 _styles: >
@@ -75,7 +76,7 @@ $$T_g(f(x)) = f(S_g(x)) \qquad \text{(1)}$$
 
 for all $g \in G$, where $S_g,T_g$ are linear representations related to the group element $g$ <d-cite key="serre1977linear"></d-cite>.
 
-The three transformations: _translation, rotation, and reflection_, form the Euclidean group $E(3)$, for which $S_g$ and 
+The three transformations: _translation, rotation, and reflection_, form the Euclidean group $E(3)$, which is the group of all aforementioned isometries in three-dimensional space, for which $S_g$ and 
 $T_g$ can be represented by a translation $t$ and an orthogonal matrix $R$ that rotates or reflects coordinates. 
 
 A function $f$ is then equivariant to a rotation or reflection $R$ if: 
@@ -148,7 +149,7 @@ between the nodes and these distances are not changed by isometric transformatio
 
 <!--- 600 words --->
 
-## Equivariant Diffusion Model (EDM)
+## Equivariant Diffusion Models (EDM)
 This section introduces diffusion models and describes how their predictions can be made E(3) equivariant. 
 The categorical properties of atoms are already invariant to E(3) transformations, hence, we are only 
 interested in enforcing property on the sampled atom positions.
