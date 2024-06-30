@@ -658,6 +658,20 @@ where $\mathbf{z} \sim \mathcal{N}(0, I)$.
 Crucially, $\mathcal{L}(\theta, \theta^-)$ only depends on the online network $f_\theta$, and the target network
 $f_{\theta^-}$, while being completely agnostic to diffusion model parameters $\phi$.
 
+
+
+The original consistency training algorithm can be seen at Figure TBA
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/ct_algo.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            <figcaption class="text-center mt-2">Figure TBA: Consistency training in isolation pseudocode.</figcaption>
+        </figure>
+    </div>
+</div>
+
+
 <!---
 ### Visualization
 
