@@ -76,6 +76,8 @@ the overall carbon footprint.
 <!--- We also note that these performance improvements are, in theory at least, not exclusive to EDM or GNNs. Many other ML 
 models might be improved through a JAX reimplementation and many diffusion models can be trained as a consistency model. --->
 
+<!--- 260 words --->
+
 <br>
 
 #### Briefly on Equivariance for molecules
@@ -102,6 +104,9 @@ $$Rf(x) = f(Rx) \qquad \text{(2)}$$
 meaning transforming its input results in an equivalent transformation of its output. <d-cite key="hoogeboom2022equivariant"></d-cite>
 
 <br>
+
+<!--- 330 words --->
+
 
 #### Introducing Equivariant Graph Neural Networks (EGNNs)
 Molecules can very naturally be represented with graph structures, where the nodes are the atoms and edges their bonds. 
@@ -159,6 +164,8 @@ Using the previous feature and the sum of these messages, the model computes the
 
 This architecture then satisfies translation and rotation equivariance. Notably, the messages depend on the distance 
 between the nodes and these distances are not changed by isometric transformations.
+
+<!--- 600 words --->
 
 ## Equivariant Diffusion Model (EDM)
 This section introduces diffusion models and describes how their predictions can be made E(3) equivariant. 
@@ -221,7 +228,7 @@ $$
 
 where $v_T \sim \mathcal{N}(0, \mathbf{I})$ is a sample from the pure Gaussian noise.
 
-<!--- 1000 words --->
+<!--- 850 words --->
 
 ### Enforcing E(3) equivariance
 <!--- check rotations and reflections or jsut rotations? --->
@@ -285,7 +292,7 @@ the absolute positions are effectively turned into relative ones w.r.t. to the c
 can now learn relationships that do not depend on the absolute position of the whole molecule in 3D space.
 --->
 
-<!--- 1300 words --->
+<!--- (below) 1100 words --->
 
 ### How to train the EDM?
 
@@ -317,7 +324,7 @@ The EDM authors found that the model performs best with a constant $w(t) = 1$, t
 the loss function to an MSE. Since coordinates and categorical features are on different scales, it was also 
 found that scaling the inputs before inference and then rescaling them back also improves performance.
 
-<!--- 1450 words --->
+<!--- 1250 words --->
 
 ## Consistency Models
 
@@ -348,7 +355,7 @@ Typically, this SDE is designed such that $p_T(\mathbf{x})$ at the final time-st
     </div>
 </div>
 
-<!--- 1600 words --->
+<!--- 1400 words --->
 
 ### Existence of the PF ODE
 
@@ -383,7 +390,7 @@ Given any of-the-shelf ODE solver (e.g. Euler) and a trained score model $s_\phi
 The time horizon $[\epsilon, T]$ with $\epsilon$ very close to zero is discretized into sub-intervals for improved performance <d-cite key="karras2022elucidating"></d-cite>. A solution trajectory, denoted $\\{\mathbf{x}_t\\}$, 
 is then given as a finite set of samples $\mathbf{x}_t$ for every discretized time-step $t$ between $\epsilon$ and $T$.
 
-<!--- 1750 words --->
+<!--- 1600 words --->
 
 ### Consistency Function
 
@@ -402,7 +409,7 @@ $(x_t, t)$ that lie on the same PF ODE trajectory. Hence, we have $f(x_t, t) = f
 The goal of a _consistency model_, denoted by $f_\theta$, is to estimate this consistency function $f$ from data by
 being enforced with this self-consistency property during training.
 
-<!--- 1940 words --->
+<!--- 1700 words --->
 
 <!---
 ### Boundary Condition & Function Parametrization
@@ -460,7 +467,7 @@ samples on the data distribution $\hat{x_{\epsilon}}$ $= f_\theta(\hat{x_T}, T)$
 </div>
 
 
-<!--- 2000 words --->
+<!--- 1750 words --->
 
 ### Training Consistency Models
 
@@ -490,14 +497,15 @@ $f_{\theta^-}$, while being completely agnostic to diffusion model parameters $\
 
 ## Conclusion
 
-We were able to successfully train EDM as a consistency model in isolation, achieving nearly identical training
-and validation loss as the original implementation. However, using single-step sampling with consistency models, 
-we were only able to reliably achieve around 15% atom stability in the best case scenario, compared with
-over 90% for the default EDM.
+Consistency models are able to reduce the number of steps during de-noising up to just a single step, significantly 
+speeding up the sampling process, while allowing for a controlled trade-off between speed and sample quality.
+We were able to successfully demonstrate this and train an EDM as a consistency model in isolation, achieving nearly 
+identical training and validation losses as the original implementation. However, using the single-step 
+only reliably achieves around 15% atom stability in the best case scenario, compared with over 90% for the default EDM.
+Using multi-step sampling should in theory yield competitive results, but we observed no such improvement. 
 
-Using multi-step sampling should in theory improve these results, yielding competitive results as the number of
-steps increases. However, we observed no such improvement, hinting at possible bugs in out multi-step sampling code.
+Since it cannot be ruled out that this was caused by a bug in our multi-step sampling code, we hope to continue 
+investigating if the consistency model paradigm can reliably be used for molecule generation in the future
+and show more competitive results as previous works suggest <d-cite key="fan2023ecconf"></d-cite>.
 
-We also implemented the EDM in JAX, leading to faster runtime, but surprisingly un-competitive results. 
-
-<!--- 2300 words --->
+<!--- 2000 words --->
