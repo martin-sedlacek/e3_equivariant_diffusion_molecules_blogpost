@@ -203,7 +203,7 @@ trained to learn a reverse process that reconstructs samples on the data distrib
     <div class="col-sm mt-3 mt-md-0">
         <figure>
             {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/ddpm_figure.png" class="img-fluid rounded z-depth-1" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure 3: The Markov process of forward and reverse diffusion <d-cite key="ho2020denoising"></d-cite></figcaption>
+            <figcaption class="text-center mt-2">Figure 2: The Markov process of forward and reverse diffusion <d-cite key="ho2020denoising"></d-cite></figcaption>
         </figure>
     </div>
 </div>
@@ -288,7 +288,7 @@ $$
 </div>
 <div class="row">
     <div class="col text-center mt-3">
-        <p>Figure 5: Examples of 2D roto-invariant distributions</p>
+        <p>Figure 3: Examples of 2D roto-invariant distributions</p>
     </div>
 </div>
 
@@ -305,7 +305,7 @@ Furthermore, if $x \sim p(x)$ is invariant to a group, and the transition probab
 are equivariant, then the marginal distribution of $y$ at any time step $t$ is also invariant to that group <d-cite key="xu2022geodiff"></d-cite>.
 
 Since the underlying EGNN already ensures equivariance, the initial sampling distribution can easily be constrained 
-to something roto-invariant, such as a simple mean zero Gaussian with a diagonal covariance matrix, as seen in Figure 5 (left).
+to something roto-invariant, such as a simple mean zero Gaussian with a diagonal covariance matrix, as seen in Figure 3 (left).
 
 Translations require a few more tricks. It has been shown, that it is impossible to have non-zero distributions 
 invariant to translations <d-cite key="satorras2021en"></d-cite>. Intuitively, the translation invariance property 
@@ -392,7 +392,7 @@ Typically, this SDE is designed such that $p_T(\mathbf{x})$ at the final time-st
     <div class="col-sm mt-3 mt-md-0">
         <figure>
             {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/bimodal_to_gaussian_plot.png" class="img-fluid rounded z-depth-1 custom-img-size-2" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure 6: Illustration of a bimodal distribution evolving to a Gaussian over time</figcaption>
+            <figcaption class="text-center mt-2">Figure 4: Illustration of a bimodal distribution evolving to a Gaussian over time</figcaption>
         </figure>
     </div>
 </div>
@@ -432,7 +432,7 @@ to obtain a solution trajectory mapping all points along the way to the initial 
     <div class="col-sm mt-3 mt-md-0">
         <figure>
             {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/consistency_models_pf_ode.png" class="img-fluid rounded z-depth-1" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure 7: Solution trajectories of the PF ODE. <d-cite key="dosovitskiy2020image"></d-cite></figcaption>
+            <figcaption class="text-center mt-2">Figure 5: Solution trajectories of the PF ODE. <d-cite key="dosovitskiy2020image"></d-cite></figcaption>
         </figure>
     </div>
 </div>
@@ -514,7 +514,7 @@ samples on the data distribution $\hat{x_{\epsilon}}$ $= f_\theta(\hat{x_T}, T)$
     <div class="col-sm mt-3 mt-md-0">
         <figure>
             {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/consistency_on_molecules.png" class="img-fluid rounded z-depth-1" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure 8: Visualization of PF ODE trajectories for molecule generation in 3D. <d-cite key="fan2023ecconf"></d-cite></figcaption>
+            <figcaption class="text-center mt-2">Figure 6: Visualization of PF ODE trajectories for molecule generation in 3D. <d-cite key="fan2023ecconf"></d-cite></figcaption>
         </figure>
     </div>
 </div>
