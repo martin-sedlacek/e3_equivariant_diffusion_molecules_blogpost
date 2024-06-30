@@ -114,12 +114,38 @@ each of which updates the representation of each node, using the information in 
 
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
-        <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/message_passing.png" class="img-fluid rounded z-depth-1" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure 1: Visualization of a message passing network</figcaption>
+        <figure class="custom-figure">
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/message_passing.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            <figcaption class="text-center mt-2">Message Passing Network (Static)</figcaption>
+        </figure>
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/message_passing.gif" class="img-fluid rounded z-depth-1 custom-image custom-image-wide" zoomable=true %}
+            <figcaption class="text-center mt-2">Message Passing Network (Animated)</figcaption>
         </figure>
     </div>
 </div>
+<div class="row">
+    <div class="col text-center mt-3">
+        <p>Figure 1: Visualization of a message passing network (static and animated)</p>
+    </div>
+</div>
+
+<style>
+    .custom-figure .custom-image {
+        height: 200px; /* Set a fixed height for both images */
+        width: 600px; /* Maintain aspect ratio and adjust width accordingly */
+        max-width: 130%; /* Ensure the image doesn't exceed the container width */
+    }
+
+    .custom-figure .custom-image-wide {
+        width: 200%; /* Increase the width of the second image */
+    }
+</style>
+
+
+
 
 The previously mentioned E(3) equivariance property of molecules can be injected as an inductive prior into to the model 
 architecture of a message passing graph neural network, resulting in an E(3) EGNN. This property improves generalisation <d-cite key="hoogeboom2022equivariant"></d-cite> and also beats similar non-equivariant Graph Convolution Networks on 
@@ -169,16 +195,17 @@ from an area of higher concentration to an area of lower concentration - a proce
 interactions. In the physical world, this spreading can largely be traced back to the original configuration, which 
 inspired scientists to create models of this behaviour. When applied to generative modelling, we usually aim to reconstruct data from some observed or sampled noise, which is an approach adopted by many powerful diffusion models. 
 
+
 <div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/Diffusion_microscopic.gif" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+    <div class="col-md-6">
+        <figure class="unique-figure">
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/Diffusion_microscopic.gif" class="img-fluid rounded z-depth-1 unique-image" zoomable=true %}
             <figcaption class="text-center mt-2">Physical diffusion</figcaption>
         </figure>
     </div>
-    <div class="col-sm mt-3 mt-md-0">
-        <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/Diffusion_models_flower.gif" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+    <div class="col-md-6">
+        <figure class="unique-figure">
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/Diffusion_models_flower.gif" class="img-fluid rounded z-depth-1 unique-image-wide" zoomable=true %}
             <figcaption class="text-center mt-2">Generative modelling with diffusion</figcaption>
         </figure>
     </div>
@@ -190,12 +217,18 @@ inspired scientists to create models of this behaviour. When applied to generati
 </div>
 
 <style>
-    .custom-figure .custom-image {
+    .unique-figure .unique-image {
         height: 200px; /* Set a fixed height for both images */
-        width: auto; /* Maintain aspect ratio and adjust width accordingly */
+        width: 600px; /* Maintain aspect ratio and adjust width accordingly */
+        max-width: 100%; /* Ensure the image doesn't exceed the container width */
+    }
+    .unique-figure .unique-image-wide {
+        width: 600px; /* Set a fixed width for the second image to make it wider */
+        height: 200px; /* Ensure the height remains consistent */
         max-width: 100%; /* Ensure the image doesn't exceed the container width */
     }
 </style>
+
 
 
 ### Denoising Diffusion Probabilistic Models (DDPM)
