@@ -8,14 +8,7 @@ date: 2024-06-30
 featured: true
 
 authors:
-  - name: Martin Sedlacek*
-    url: https://martin-sedlacek.com/
-    affiliations:
-      name: University of Amsterdam
-  - name: Antonios Vozikis*
-    url: "#"
-    affiliations:
-      name: Vrije Universiteit Amsterdam
+  - name: Anonymous
 
 bibliography: equivariant_diffusion/2024-06-30-equivariant_diffusion.bib
 
@@ -317,6 +310,11 @@ found that scaling the inputs before inference and then rescaling them back also
 
 <!--- 1250 words --->
 
+### Experimental Results
+
+TBA
+
+
 ## Consistency Models
 
 As previously mentioned, diffusion models are bottlenecked by the sequential denoising process <d-cite key="song2023consistency"></d-cite>.
@@ -485,6 +483,10 @@ where $\mathbf{z} \sim \mathcal{N}(0, I)$.
 
 Crucially, $\mathcal{L}(\theta, \theta^-)$ only depends on the online network $f_\theta$, and the target network
 $f_{\theta^-}$, while being completely agnostic to diffusion model parameters $\phi$.
+
+### Experimental Results
+
+TBA
 
 ## Conclusion
 
