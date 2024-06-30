@@ -317,36 +317,18 @@ The EDM authors found that the model performs best with a constant $w(t) = 1$, t
 the loss function to an MSE. Since coordinates and categorical features are on different scales, it was also 
 found that scaling the inputs before inference and then rescaling them back also improves performance.
 
+<!--- 1450 words --->
+
 ## Consistency Models
 
 As previously mentioned, diffusion models are bottlenecked by the sequential denoising process <d-cite key="song2023consistency"></d-cite>.
 Consistency Models reduce the number of steps during de-noising up to just a single step, significantly speeding up 
 this costly process, while allowing for a controlled trade-off between speed and sample quality.
 
-### How does it work?
-
-To understand consistency models, one must look at diffusion from a slightly different perspective than it's usually presented.
-Consider the transfer of mass under the data probability distribution in time.
-
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/bimodal_to_gaussian_plot.png" class="img-fluid rounded z-depth-1" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure 6: Illustration of a bimodal distribution evolving to a Gaussian over time</figcaption>
-        </figure>
-    </div>
-</div>
-
-
-Such process are often well described with a differential equation. In the next sections we look closely at the work of Yang Song <d-cite key="song2023consistency"></d-cite><d-cite key="song2021score"></d-cite> and others to examine how they leverage the existence of such an Ordinary Differential Equation (ODE) to generate strong
-samples much faster.
-
-<br>
-
-**Modelling the noising process as an SDE**
+### Modelling the noising process as an SDE
 
 Song et al. <d-cite key="song2021score"></d-cite> have shown that the noising process in diffusion can be described with a Stochastic Differential Equation (SDE)
-transforming the data distribution $p_{\text{data}}(\mathbf{x})$:
+transforming the data distribution $p_{\text{data}}(\mathbf{x})$ in time:
 
 $$d\mathbf{x}_t = \mathbf{\mu}(\mathbf{x}_t, t) dt + \sigma(t) d\mathbf{w}_t \qquad \text{(23)}$$
 
@@ -357,9 +339,18 @@ distribution at time $T$.
 
 Typically, this SDE is designed such that $p_T(\mathbf{x})$ at the final time-step $T$ is close to a tractable Gaussian.
 
-<br>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/bimodal_to_gaussian_plot.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            <figcaption class="text-center mt-2">Figure 6: Illustration of a bimodal distribution evolving to a Gaussian over time</figcaption>
+        </figure>
+    </div>
+</div>
 
-**Existence of the PF ODE**
+<!--- 1600 words --->
+
+### Existence of the PF ODE
 
 This SDE has a remarkable property, that a special ODE exists, whose trajectories sampled at $t$ are distributed
 according to $p_t(\mathbf{x})$ <d-cite key="song2023consistency"></d-cite>:
@@ -370,13 +361,14 @@ This ODE is dubbed the Probability Flow (PF) ODE by Song et al. <d-cite key="son
 manipulating probability mass over time we hinted at in the beginning of the section.
 
 A score model $s_\phi(\mathbf{x}, t)$ can be trained to approximate $\nabla log p_t(\mathbf{x})$ via score matching <d-cite key="song2023consistency"></d-cite>.
- <!-- and following Karras et al. <d-cite key="gilmer2017neural"></d-cite> it is -->
-Since we know the parametrization of the final distribution $p_T(\mathbf{x})$ to be a standard Gaussian parametrized with $\mathbf{\mu}=0$ and $\sigma(t) = \sqrt{2t}$, this score model can be plugged into the equation (24) and the expression reduces itself to an empirical estimate of the PF ODE:
+Since we know the parametrization of the final distribution $p_T(\mathbf{x})$ to be a standard Gaussian parametrized 
+with $\mathbf{\mu}=0$ and $\sigma(t) = \sqrt{2t}$, this score model can be plugged into the equation (24) and the 
+expression reduces itself to an empirical estimate of the PF ODE:
 
 $$\frac{dx_t}{dt} = -ts\phi(\mathbf{x}_t, t) \qquad \text{(25)}$$
 
-With $\mathbf{\hat{x}}_T$ sampled from the specified Gaussian at time $T$, the PF ODE can be solved backwards in time to obtain
-a solution trajectory mapping all points along the way to the initial data distribution at time $\epsilon$.
+With $\mathbf{\hat{x}}_T$ sampled from the specified Gaussian at time $T$, the PF ODE can be solved backwards in time 
+to obtain a solution trajectory mapping all points along the way to the initial data distribution at time $\epsilon$.
 
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
@@ -387,35 +379,13 @@ a solution trajectory mapping all points along the way to the initial data distr
     </div>
 </div>
 
+Given any of-the-shelf ODE solver (e.g. Euler) and a trained score model $s_\phi(\mathbf{x}, t)$, we can solve this PF ODE.
+The time horizon $[\epsilon, T]$ with $\epsilon$ very close to zero is discretized into sub-intervals for improved performance <d-cite key="karras2022elucidating"></d-cite>. A solution trajectory, denoted $\\{\mathbf{x}_t\\}$, 
+is then given as a finite set of samples $\mathbf{x}_t$ for every discretized time-step $t$ between $\epsilon$ and $T$.
 
-<br>
+<!--- 1750 words --->
 
-**Solving the PF ODE**
-
-In Figure 7 the "Noise" distribution corresponds to $p_T(\mathbf{x})$ and the "Data" distribution is treated as one at $t=\epsilon$
-very close to time zero. For numerical stability we want to avoid explicitly having $t=0$ <d-cite key="karras2022elucidating"></d-cite>.
-
-Following Karras et al. <d-cite key="karras2022elucidating"></d-cite>, the time horizon $[\epsilon, T]$ is discretized into $N-1$ sub-intervals with
-boundaries $t_1 = \epsilon < t_2 < \cdots < t_N = T$. This improves performance and stability over treating time as a
-continuous variable.
-
-In practice, the following formula is most often used to determine these boundaries <d-cite key="karras2022elucidating"></d-cite>:
-
-$$t_i = \left(\epsilon^{1/\rho} + \frac{i - 1}{N - 1}(T^{1/\rho} - \epsilon^{1/\rho})\right)^\rho \qquad \text{(26)}$$
-
-, where $\rho = 7$.
-
- Given any of-the-shelf ODE solver (e.g. Euler) and a trained score model $s_\phi(\mathbf{x}, t)$, we can solve this PF ODE.
-
-As shown before, the score model is needed to predict the change in signal over time $\frac{dx_t}{dt}$, i.e. a
-generalization of what we referred to as "predicting noise to next time step" earlier.
-
-A solution trajectory, denoted $\\{\mathbf{x}_t\\}$, is then given as a finite set of samples $\mathbf{x}_t$ for every
-discretized time-step $t$ between $\epsilon$ and $T$.
-
-<br>
-
-**Consistency Function**
+### Consistency Function
 
 Given a solution trajectory $${\mathbf{x}_t}$$, we define the _consistency function_ as:
 
@@ -432,9 +402,9 @@ $(x_t, t)$ that lie on the same PF ODE trajectory. Hence, we have $f(x_t, t) = f
 The goal of a _consistency model_, denoted by $f_\theta$, is to estimate this consistency function $f$ from data by
 being enforced with this self-consistency property during training.
 
-<br>
+<!--- 1940 words --->
 
-**Boundary Condition & Function Parametrization**
+### Boundary Condition & Function Parametrization
 
 For any consistency function $f(\cdot, \cdot)$, we must have $f(x_\epsilon, \epsilon) = x_\epsilon$, i.e., $f(\cdot, 
 \epsilon)$ being an identity function. This constraint is called the _boundary condition_ <d-cite key="song2023consistency"></d-cite>.
@@ -472,9 +442,7 @@ are all differentiable, which is critical for training continuous-time consisten
 
 In our work, we utilize the latter methodology in order to satisfy the boundary condition.
 
-<br>
-
-**Sampling**
+### Sampling
 
 With a fully trained consistency model $f_\theta(\cdot, \cdot)$, we can generate new samples by simply sampling from the initial
 Gaussian $\hat{x_T}$ $\sim \mathcal{N}(0, T^2I)$ and propagating this through the consistency model to obtain
@@ -489,9 +457,9 @@ samples on the data distribution $\hat{x_{\epsilon}}$ $= f_\theta(\hat{x_T}, T)$
     </div>
 </div>
 
+<!--- 2100 words --->
 
 ### Training Consistency Models
-
 
 Consistency models can either be trained by "distillation" from a pre-trained diffusion model, or in "isolation" as a standalone generative model from scratch. In the context of our work, we focused only on the latter because the distillation approach has a hard requirement of using a pretrained score based diffusion. 
 In order to train in isolation we ned to leverage the following unbiased estimator:
@@ -517,129 +485,17 @@ where $\mathbf{z} \sim \mathcal{N}(0, I)$.
 Crucially, $\mathcal{L}(\theta, \theta^-)$ only depends on the online network $f_\theta$, and the target network
 $f_{\theta^-}$, while being completely agnostic to diffusion model parameters $\phi$.
 
-
-
-The original consistency training algorithm can be seen at Figure TBA
-
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/ct_algo.png" class="img-fluid rounded z-depth-1" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure TBA: Consistency training in isolation pseudocode.</figcaption>
-        </figure>
-    </div>
-</div>
-
-
-<!---
-### Visualization
-
-<p align="center">
-<img src="readme_material//consistency_mnist_tiny_example.png" alt="Consistency Graph 2" width="800"/>
-</p>
-<p align="center">
-Figure #(?): Consistency model example for the MNIST dataset.
-</p>
-
-(TBA - visualizations of the molecules if possible)
-
-
-<img src="readme_material//consistency_mnist_dataset.png" alt="Consistency Graph 2" width="800"/>
-*Figure #: Consistency model working for the MNIST dataset.*
-
-
-We conducted the expirement of the consistency model working for the MNIST dataset. During training we sampled after
-10 epochs and visualized the results. In figure # we can see the MNIST digits in different epochs. What's really
-noteworthy is that those samples were generated in one step and not by doing the denoising process what takes a
-very long time and a high number of steps, usually 1000-4000, which saves a lot of time and computation power
-during sampling.
-
-
-(TBA - maybe put back some talking about the images idk yet [Martin])
--->
-
+## Results
 
 ### EDM Consistency Model Results
 
 We were able to successfully train EDM as a consistency model in isolation. We achieved nearly identical training
-loss curves, both in magnitude of the NLL and convergence rate as shown in figure 9: 
-
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_train_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
-            <figcaption class="text-center mt-2">Training loss curves for original EDM</figcaption>
-        </figure>
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-        <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/results_consistency_train_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
-            <figcaption class="text-center mt-2">Training loss curves for consistency model EDM</figcaption>
-        </figure>
-    </div>
-</div>
-<div class="row">
-    <div class="col text-center mt-3">
-        <p>Figure 9: Training loss curves for original EDM (left), and consistency model EDM (right)</p>
-    </div>
-</div>
-
-<style>
-    .custom-figure .custom-image {
-        height: 350px; /* Set a fixed height for both images */
-        width: auto; /* Maintain aspect ratio and adjust width accordingly */
-        max-width: 100%; /* Ensure the image doesn't exceed the container width */
-    }
-</style>
-
+loss curves, both in magnitude of the NLL and convergence rate as shown in figure 9:
 
 For validation and testing, we compared samples from an EMA model against the corresponding ground truth sample,
 since consistency models are trained to produce samples directly on the data distribution. 
 We achieved similar convergence rates for both val and test losses but with a different magnitude due to the 
 changed objective as show on figure 10:
-
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_val_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
-            <figcaption class="text-center mt-2">Val loss curves for original EDM</figcaption>
-        </figure>
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-        <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/results_consistency_val_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
-            <figcaption class="text-center mt-2">Val loss curves for consistency model EDM</figcaption>
-        </figure>
-    </div>
-</div>
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_test_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
-            <figcaption class="text-center mt-2">Test loss curves for original EDM</figcaption>
-        </figure>
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-        <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/results_consistency_test_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
-            <figcaption class="text-center mt-2">Test loss curves for consistency model EDM</figcaption>
-        </figure>
-    </div>
-</div>
-<div class="row">
-    <div class="col text-center mt-3">
-        <p>Figure 10: Val (top) and Test (bottom) loss curves for original EDM (left), and consistency model EDM (right)</p>
-    </div>
-</div>
-
-<style>
-    .custom-figure .custom-image {
-        height: 350px; /* Set a fixed height for all images */
-        width: auto; /* Maintain aspect ratio and adjust width accordingly */
-        max-width: 100%; /* Ensure the image doesn't exceed the container width */
-    }
-</style>
-
 
 These results were obtained using the same EGNN back-bone, batch-size, 
 learning rate, and other relevant hyperparameters, only differing in the number of epochs completed.
@@ -649,16 +505,6 @@ for longer would be beneficial.
 Using single-step sampling with consistency models, we were only able to reliably achieve around 15% atom stability in
 the best case scenario with a large batch size show is figure 11. This low atom stability number could be due to the architecture and the way one step generation works in consistency models. We leave as a future expirement to try different values of sampling other than one step. We were not successful in generating any stable molecules using
 the consistency model.
-
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/results_consistency_atom_stability.png" class="img-fluid rounded z-depth-1" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure 11: Best results for atom stability metric using single-step sampling with consistency models trained on batch_size = 1024 for improved stability.</figcaption>
-        </figure>
-    </div>
-</div>
-
 
 The controlled trade-off between speed and sample quality should be possible with multi-step sampling,
 however, all attempts to make multi-step sampling work resulted in decreased atom stability. We further 
