@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-06-30T19:36:20+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-06-30T20:01:07+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
 </subtitle><entry><title type="html">Equivariant Diffusion for Molecule Generation in 3D using Consistency Models</title><link href="http://localhost:4000/blog/2024/equivariant_diffusion/" rel="alternate" type="text/html" title="Equivariant Diffusion for Molecule Generation in 3D using Consistency Models" /><published>2024-06-30T00:00:00+02:00</published><updated>2024-06-30T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/equivariant_diffusion</id><content type="html" xml:base="http://localhost:4000/blog/2024/equivariant_diffusion/"><![CDATA[<h2 id="introduction">Introduction</h2>
 
 <p>In this blog post, we introduce and discuss <a href="https://arxiv.org/abs/2203.17003">“Equivariant Diffusion for Molecule Generation in 3D”</a> <d-cite key="hoogeboom2022equivariant"></d-cite>, 
@@ -33,6 +33,8 @@ the overall carbon footprint.</p>
 <!--- We also note that these performance improvements are, in theory at least, not exclusive to EDM or GNNs. Many other ML 
 models might be improved through a JAX reimplementation and many diffusion models can be trained as a consistency model. --->
 
+<!--- 260 words --->
+
 <p><br /></p>
 
 <h4 id="briefly-on-equivariance-for-molecules">Briefly on Equivariance for molecules</h4>
@@ -59,6 +61,8 @@ $T_g$ can be represented by a translation $t$ and an orthogonal matrix $R$ that 
 <p>meaning transforming its input results in an equivalent transformation of its output. <d-cite key="hoogeboom2022equivariant"></d-cite></p>
 
 <p><br /></p>
+
+<!--- 330 words --->
 
 <h4 id="introducing-equivariant-graph-neural-networks-egnns">Introducing Equivariant Graph Neural Networks (EGNNs)</h4>
 <p>Molecules can very naturally be represented with graph structures, where the nodes are the atoms and edges their bonds. 
@@ -131,6 +135,8 @@ Using the previous feature and the sum of these messages, the model computes the
 <p>This architecture then satisfies translation and rotation equivariance. Notably, the messages depend on the distance 
 between the nodes and these distances are not changed by isometric transformations.</p>
 
+<!--- 600 words --->
+
 <h2 id="equivariant-diffusion-model-edm">Equivariant Diffusion Model (EDM)</h2>
 <p>This section introduces diffusion models and describes how their predictions can be made E(3) equivariant. 
 The categorical properties of atoms are already invariant to E(3) transformations, hence this property only
@@ -202,7 +208,7 @@ x_{t-1} = \frac{1}{\sqrt{1 - \beta_t}} \left( x_t - \frac{\beta_t}{\sqrt{1 - \al
 
 <p>where $v_T \sim \mathcal{N}(0, \mathbf{I})$ is a sample from the pure Gaussian noise.</p>
 
-<!--- 1000 words --->
+<!--- 850 words --->
 
 <h3 id="enforcing-e3-equivariance">Enforcing E(3) equivariance</h3>
 <!--- check rotations and reflections or jsut rotations? --->
@@ -300,7 +306,7 @@ the absolute positions are effectively turned into relative ones w.r.t. to the c
 can now learn relationships that do not depend on the absolute position of the whole molecule in 3D space.
 --->
 
-<!--- 1300 words --->
+<!--- (below) 1100 words --->
 
 <h3 id="how-to-train-the-edm">How to train the EDM?</h3>
 
@@ -327,7 +333,7 @@ $ w(t) = \left(1 - \frac{\text{SNR}(t-1)}{\text{SNR}(t)}\right)$ and $ \hat{\eps
 the loss function to an MSE. Since coordinates and categorical features are on different scales, it was also 
 found that scaling the inputs before inference and then rescaling them back also improves performance.</p>
 
-<!--- 1450 words --->
+<!--- 1250 words --->
 
 <h2 id="consistency-models">Consistency Models</h2>
 
@@ -375,7 +381,7 @@ distribution at time $T$.</p>
     </div>
 </div>
 
-<!--- 1600 words --->
+<!--- 1400 words --->
 
 <h3 id="existence-of-the-pf-ode">Existence of the PF ODE</h3>
 
@@ -427,7 +433,7 @@ to obtain a solution trajectory mapping all points along the way to the initial 
 The time horizon $[\epsilon, T]$ with $\epsilon$ very close to zero is discretized into sub-intervals for improved performance <d-cite key="karras2022elucidating"></d-cite>. A solution trajectory, denoted $\{\mathbf{x}_t\}$, 
 is then given as a finite set of samples $\mathbf{x}_t$ for every discretized time-step $t$ between $\epsilon$ and $T$.</p>
 
-<!--- 1750 words --->
+<!--- 1600 words --->
 
 <h3 id="consistency-function">Consistency Function</h3>
 
@@ -446,7 +452,7 @@ $(x_t, t)$ that lie on the same PF ODE trajectory. Hence, we have $f(x_t, t) = f
 <p>The goal of a <em>consistency model</em>, denoted by $f_\theta$, is to estimate this consistency function $f$ from data by
 being enforced with this self-consistency property during training.</p>
 
-<!--- 1940 words --->
+<!--- 1700 words --->
 
 <!---
 ### Boundary Condition & Function Parametrization
@@ -520,7 +526,7 @@ samples on the data distribution $\hat{x_{\epsilon}}$ $= f_\theta(\hat{x_T}, T)$
     </div>
 </div>
 
-<!--- 2000 words --->
+<!--- 1750 words --->
 
 <h3 id="training-consistency-models">Training Consistency Models</h3>
 
@@ -549,17 +555,18 @@ $f_{\theta^-}$, while being completely agnostic to diffusion model parameters $\
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>We were able to successfully train EDM as a consistency model in isolation, achieving nearly identical training
-and validation loss as the original implementation. However, using single-step sampling with consistency models, 
-we were only able to reliably achieve around 15% atom stability in the best case scenario, compared with
-over 90% for the default EDM.</p>
+<p>Consistency models are able to reduce the number of steps during de-noising up to just a single step, significantly 
+speeding up the sampling process, while allowing for a controlled trade-off between speed and sample quality.
+We were able to successfully demonstrate this and train an EDM as a consistency model in isolation, achieving nearly 
+identical training and validation losses as the original implementation. However, using the single-step 
+only reliably achieves around 15% atom stability in the best case scenario, compared with over 90% for the default EDM.
+Using multi-step sampling should in theory yield competitive results, but we observed no such improvement.</p>
 
-<p>Using multi-step sampling should in theory improve these results, yielding competitive results as the number of
-steps increases. However, we observed no such improvement, hinting at possible bugs in out multi-step sampling code.</p>
+<p>Since it cannot be ruled out that this was caused by a bug in our multi-step sampling code, we hope to continue 
+investigating if the consistency model paradigm can reliably be used for molecule generation in the future
+and show more competitive results as previous works suggest <d-cite key="fan2023ecconf"></d-cite>.</p>
 
-<p>We also implemented the EDM in JAX, leading to faster runtime, but surprisingly un-competitive results.</p>
-
-<!--- 2300 words --->]]></content><author><name>Martin Sedlacek*</name></author><category term="equivariance," /><category term="diffusion," /><category term="molecule" /><category term="generation," /><category term="consistency" /><category term="models" /><summary type="html"><![CDATA[Introduction to the seminal papers &quot;Equivariant Diffusion for Molecule Generation in 3D&quot; and &quot;Consistency Models&quot; with an adaptation fusing the two together for fast molecule generation.]]></summary></entry><entry><title type="html">a distill-style blog post</title><link href="http://localhost:4000/blog/2021/distill/" rel="alternate" type="text/html" title="a distill-style blog post" /><published>2021-05-22T00:00:00+02:00</published><updated>2021-05-22T00:00:00+02:00</updated><id>http://localhost:4000/blog/2021/distill</id><content type="html" xml:base="http://localhost:4000/blog/2021/distill/"><![CDATA[<h2 id="equations">Equations</h2>
+<!--- 2000 words --->]]></content><author><name>Martin Sedlacek*</name></author><category term="equivariance," /><category term="diffusion," /><category term="molecule" /><category term="generation," /><category term="consistency" /><category term="models" /><summary type="html"><![CDATA[Introduction to the seminal papers &quot;Equivariant Diffusion for Molecule Generation in 3D&quot; and &quot;Consistency Models&quot; with an adaptation fusing the two together for fast molecule generation.]]></summary></entry><entry><title type="html">a distill-style blog post</title><link href="http://localhost:4000/blog/2021/distill/" rel="alternate" type="text/html" title="a distill-style blog post" /><published>2021-05-22T00:00:00+02:00</published><updated>2021-05-22T00:00:00+02:00</updated><id>http://localhost:4000/blog/2021/distill</id><content type="html" xml:base="http://localhost:4000/blog/2021/distill/"><![CDATA[<h2 id="equations">Equations</h2>
 
 <p>This theme supports rendering beautiful math in inline and display modes using <a href="https://www.mathjax.org/">MathJax 3</a> engine.
 You just need to surround your math expression with <code class="language-plaintext highlighter-rouge">$$</code>, like <code class="language-plaintext highlighter-rouge">$$ E = mc^2 $$</code>.
