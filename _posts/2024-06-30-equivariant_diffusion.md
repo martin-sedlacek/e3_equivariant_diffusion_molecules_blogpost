@@ -404,6 +404,7 @@ being enforced with this self-consistency property during training.
 
 <!--- 1940 words --->
 
+<!---
 ### Boundary Condition & Function Parametrization
 
 For any consistency function $f(\cdot, \cdot)$, we must have $f(x_\epsilon, \epsilon) = x_\epsilon$, i.e., $f(\cdot, 
@@ -441,6 +442,7 @@ This way, the consistency model is differentiable at $t = \epsilon$ if $F_\theta
 are all differentiable, which is critical for training continuous-time consistency models.
 
 In our work, we utilize the latter methodology in order to satisfy the boundary condition.
+--->
 
 ### Sampling
 
@@ -457,7 +459,8 @@ samples on the data distribution $\hat{x_{\epsilon}}$ $= f_\theta(\hat{x_T}, T)$
     </div>
 </div>
 
-<!--- 2100 words --->
+
+<!--- 2000 words --->
 
 ### Training Consistency Models
 
@@ -485,41 +488,16 @@ where $\mathbf{z} \sim \mathcal{N}(0, I)$.
 Crucially, $\mathcal{L}(\theta, \theta^-)$ only depends on the online network $f_\theta$, and the target network
 $f_{\theta^-}$, while being completely agnostic to diffusion model parameters $\phi$.
 
-## Results
-
-### EDM Consistency Model Results
-
-We were able to successfully train EDM as a consistency model in isolation. We achieved nearly identical training
-loss curves, both in magnitude of the NLL and convergence rate as shown in figure 9:
-
-For validation and testing, we compared samples from an EMA model against the corresponding ground truth sample,
-since consistency models are trained to produce samples directly on the data distribution. 
-We achieved similar convergence rates for both val and test losses but with a different magnitude due to the 
-changed objective as show on figure 10:
-
-These results were obtained using the same EGNN back-bone, batch-size, 
-learning rate, and other relevant hyperparameters, only differing in the number of epochs completed.
-However, given the displayed loss curves, we have little reason to believe that training the consistency model
-for longer would be beneficial.
-
-Using single-step sampling with consistency models, we were only able to reliably achieve around 15% atom stability in
-the best case scenario with a large batch size show is figure 11. This low atom stability number could be due to the architecture and the way one step generation works in consistency models. We leave as a future expirement to try different values of sampling other than one step. We were not successful in generating any stable molecules using
-the consistency model.
-
-The controlled trade-off between speed and sample quality should be possible with multi-step sampling,
-however, all attempts to make multi-step sampling work resulted in decreased atom stability. We further 
-discuss the set-up and hypothesise why this did not work in the next section.  
-
-
 ## Conclusion
 
-In conclusion, we largely succeeded in reimplementing the EDM paper in JAX, leading to faster runtime, but 
-un-competitive results. Similarly, we implemented and trained EDM as a consistency model, allowing us to 
-generate new molecules much in a single step, however, we did not manage to make multi-step generation work. 
-As such, the consistency model also did not achieve competitive results. 
+We were able to successfully train EDM as a consistency model in isolation, achieving nearly identical training
+and validation loss as the original implementation. However, using single-step sampling with consistency models, 
+we were only able to reliably achieve around 15% atom stability in the best case scenario, compared with
+over 90% for the default EDM.
 
-Although the results are not close to state of the art, we are confident that these methods can achieve better performance 
-with more development time, and in their current state, can serve as a good proof of concept. A natural direction
-for future research is to continue investigating the poor performance of the current implementation and fix the
-underlying issues and suspected bugs to get competitive results.
+Using multi-step sampling should in theory improve these results, yielding competitive results as the number of
+steps increases. However, we observed no such improvement, hinting at possible bugs in out multi-step sampling code.
 
+We also implemented the EDM in JAX, leading to faster runtime, but surprisingly un-competitive results. 
+
+<!--- 2300 words --->
