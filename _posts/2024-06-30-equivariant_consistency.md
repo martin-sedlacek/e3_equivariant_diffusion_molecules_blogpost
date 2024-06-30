@@ -1,6 +1,6 @@
 ---
 layout: distill
-title: Speeding up 3D Molecule Generation: Equivariant Consistency
+title: Equivariant Consistency for molecule creation
 description: Discussing Equivariant molecule generation using Consistency Models.
 tags: molecule generation, consistency models
 giscus_comments: true
@@ -8,34 +8,21 @@ date: 2024-06-30
 featured: true
 
 authors:
-  - name: P. Bartak
+  - name: Martin Sedlacek
     url: "#"
     affiliations:
-      name: Some University
-  - name: L. Cadigan
+      name: UvA
+  - name: Antonios Vozikis
     url: "#"
     affiliations:
-      name: Some University
-  - name: M. Guo
-    url: "#"
-    affiliations:
-      name: Some University
-  - name: M. Sedlacek
-    url: "#"
-    affiliations:
-      name: Some University
-  - name: A. Vozikis
-    url: "#"
-    affiliations:
-      name: Some University
+      name: VU
 
-bibliography: distill-template/2018-12-22-distill.bib
+bibliography: asset/bibliography/2024-06-30-equivariant_consistency.bib
 
 toc:
   - name: Introduction
   - name: Equivariant Diffusion Models (EDM)
   - name: Enhancements with Consistency Models
-  - name: Implementing EDM with JAX
   - name: Conclusion
 
 
@@ -58,9 +45,6 @@ _styles: >
 
 ## Introduction
 
-# Speeding up 3D Molecule Generation: Equivariant Diffusion with JAX and Consistency Models
-
-### P. Bartak, L. Cadigan, M. Guo, M. Sedlacek, A. Vozikis
 
 In this blog post, we present and discuss the seminal paper ["Equivariant Diffusion for Molecule Generation in 3D"](https://arxiv.org/abs/2203.17003) [9], 
 which presented an Equivariant Diffusion Model (EDM). The authors trained a diffusion model with an 
@@ -92,7 +76,7 @@ the carbon footprint overall.
 We also note that these performance improvements are, in theory at least, not exclusive to EDM or GNNs. Many other ML 
 models might be improved through a JAX reimplementation and many diffusion models can be trained as a consistency model.
 
-## Groups and Equivariance for molecules
+#### Groups and Equivariance for molecules
 
 Equivariance is a property of certain functions, which ensures that the function's output transforms in a predictable manner under collections of transformations. This property is valuable in molecular modeling, where it can be used to ensure that the properties of molecular structures are consistent with their symmetries in the real world. specifically, we are interested in ensuring that some structure is preserved in the representation of the molecule when three types of transformations are applied to it: translation, rotation, and reflection. 
 
@@ -106,7 +90,7 @@ $$Rf(x) = f(Rx) \qquad \text{(2)}$$
 
 meaning transforming its input results in an equivalent transformation of its output. [9]
 
-## E(n) Equivariant Graph Neural Networks (EGNNs)
+#### E(n) Equivariant Graph Neural Networks (EGNNs)
 
 
 Generating molecules naturally leans itself into graph representation, with the nodes representing atoms within the
@@ -125,31 +109,45 @@ Figure 1: Visualization of a message passing network (Credit: Yuki Asano)
 </p> -->
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
-        {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/message_passing.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+        <figure>
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/message_passing.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            <figcaption class="text-center mt-2">Figure 1: Message passing</figcaption>
+        </figure>
     </div>
 </div>
 
+
 The EGNN specifically contains _equivariant_ convolution layers:
 
-$$\mathbf{x}^{l+1},\mathbf{h}^{l+1}=EGCL\[ \mathbf{x}^l, \mathbf{h}^l \] \qquad \text{(3)}$$
+$$
+\mathbf{x}^{l+1},\mathbf{h}^{l+1}=EGCL[ \mathbf{x}^l, \mathbf{h}^l ] \qquad \text{(3)}
+$$
+
 
 The EGCL layer is defined through the formulas:
 
 
 <div align="center">
 
-$`\mathbf{m}_{ij} = \phi_e(\mathbf{h}_i^l, \mathbf{h}_j^l, d^2_{ij})`$ $\qquad \text{(4)}$
+$$
+\mathbf{m}_{ij} = \phi_e(\mathbf{h}_i^l, \mathbf{h}_j^l, d^2_{ij}) \qquad \text{(4)}
+$$
 
-$` \mathbf{h}_i^{l+1} = \phi_h\left(\mathbf{h}_i^l, \sum_{j \neq i} \tilde{e}_{ij} \mathbf{m}_{ij}\right) `$ $\qquad \text{(5)}$
+$$
+\mathbf{h}_i^{l+1} = \phi_h\left(\mathbf{h}_i^l, \sum_{j \neq i} \tilde{e}_{ij} \mathbf{m}_{ij}\right) \qquad \text{(5)}
+$$
 
-$`\mathbf{x}_i^{l+1} = \mathbf{x}_i^l + \sum_{j \neq i} \frac{\mathbf{x}_i^l \mathbf{x}_j^l}{d_{ij} + 1} \phi_x(\mathbf{h}_i^l, \mathbf{h}_j^l, d^2_{ij})`$ $\qquad \text{(6)}$
+$$
+\mathbf{x}_i^{l+1} = \mathbf{x}_i^l + \sum_{j \neq i} \frac{\mathbf{x}_i^l \mathbf{x}_j^l}{d_{ij} + 1} \phi_x(\mathbf{h}_i^l, \mathbf{h}_j^l, d^2_{ij}) \qquad \text{(6)}
+$$
 
 </div>
 
 
+
 where $h_l$ represents the feature $h$ at layer $l$, $x_l$ represents the coordinate at layer $l$ and 
-$`d_{ij}= ||x_i^l-x^l_j||_2`$ is the Euclidean distance between nodes $`v_i`$ and $`v_j`$. A fully connected neural 
-networks is used to learn the functions $`\phi_e`$, $`\phi_x`$, and $`\phi_h`$. At each layer, a message $`m_{ij}`$ 
+$$d_{ij}= ||x_i^l-x^l_j||_2$$ is the Euclidean distance between nodes $$v_i$$ and $$v_j$$. A fully connected neural 
+networks is used to learn the functions $$\phi_e$$, $$\phi_x$$, and $$\phi_h$$. At each layer, a message $$m_{ij}$$ 
 is computed from the previous layer's feature representation. Using the previous feature and the sum of these messages, 
 the model computes the next layer's feature representation.
 
@@ -158,20 +156,45 @@ between the nodes and these distances are not changed by isometric transformatio
 
 
 
-## Diffusion Models
+## Equivariant Diffusion Models
 
 Diffusion models [24] are deeply rooted within the principles of physics, where the process describes particles moving 
 from an area of higher concentration to an area of lower concentration - a process governed by random, stochastic 
 interactions. In the physical world, this spreading can largely be traced back to the original configuration, which 
 inspired scientists to create models of this behaviour. When applied to generative modelling, we usually aim to reconstruct data from some observed or sampled noise, which is an approach adopted by many powerful diffusion models. 
 
-<p align="center">
-  <img src="readme_material/Diffusion_microscopic.gif" alt="Diffusion in nature" width="181" />
-  <img src="readme_material/Diffusion_models_flower.gif" alt="Diffusion in model" width="500" />
-</p>
-<p align="center">
-Figure 2: Physical diffusion (left) and generative modelling with diffusion (right) 
-</p>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/Diffusion_microscopic.gif" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            <figcaption class="text-center mt-2">Physical diffusion</figcaption>
+        </figure>
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/Diffusion_models_flower.gif" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            <figcaption class="text-center mt-2">Generative modelling with diffusion</figcaption>
+        </figure>
+    </div>
+</div>
+<div class="row">
+    <div class="col text-center mt-3">
+        <p>Figure 2: Physical diffusion (left) and generative modelling with diffusion (right)</p>
+    </div>
+</div>
+
+<style>
+    .custom-figure .custom-image {
+        height: 200px; /* Set a fixed height for both images */
+        width: auto; /* Maintain aspect ratio and adjust width accordingly */
+        max-width: 100%; /* Ensure the image doesn't exceed the container width */
+    }
+</style>
+
+
+
+
+
 
 ### Denoising Diffusion Probabilistic Models (DDPM)
 
@@ -198,12 +221,16 @@ q\left( x_1, \ldots, x_T \mid x_0 \right) := \prod_{t=1}^T q \left( x_t \mid x_{
 \end{align}
 $$
 
-<p align="center">
-<img src="readme_material/ddpm_figure.png" width=700>
-</p>
-<p align="center">
-Figure 3: The Markov process of forward and reverse diffusion [8]
-</p>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/ddpm_figure.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            <figcaption class="text-center mt-2">Figure 3: The Markov process of forward and reverse diffusion [8]</figcaption>
+        </figure>
+    </div>
+</div>
+
+
 
 ### Reverse diffusion process ("denoising")
 
@@ -250,17 +277,17 @@ $$
 
 However, this is intractable because we need to integrate over a very high dimensional (pixel) space for continuous values over T timesteps. Instead, take inspiration from VAEs and find a new, tractable training objective using a variational lower bound (VLB), also known as _Evidence lower bound_ (ELBO). We have :
 
-$`
+$$
 \mathbb{E}[-\log p_{\theta}(x_{0})] \leq \mathbb{E}_{q} \left[ -\log \frac{p_{\theta}(x_{0:T})}{q(x_{1:T} | x_{0})} \right] = \mathbb{E}_{q} \left[ -\log p(X_{T}) - \sum_{t \geq 1} \log \frac{p_{\theta}(x_{t-1} | x_{t})}{q(x_{t} | x_{t-1})} \right] =: L \qquad \text{(14)}
-`$
+$$
 
-After some simplification, we arrive at this final $`L_{vlb}`$ - Variational Lower Bound loss term:
+After some simplification, we arrive at this final $$L_{vlb}$$ - Variational Lower Bound loss term:
 
-$`
+$$
 \mathbb{E}_{q} \left[ D_{KL}(q(x_{T}|x_{0}) \parallel p(x_{T})) \bigg\rvert_{L_{T}} + \sum_{t > 1} D_{KL}(q(x_{t-1}|x_{t}, x_{0}) \parallel p_{\theta}(x_{t-1}|x_{t})) \bigg\rvert_{L_{t-1}} - \log p_{\theta}(x_{0}|x_{1}) \bigg\rvert_{L_{0}} \right] \qquad \text{(15)}
-`$
+$$
 
-We can break the above $`L_{vlb}`$ loss term into individual timesteps as follows:
+We can break the above $$L_{vlb}$$ loss term into individual timesteps as follows:
 
 $$
 L_{vlb} := L_{0} + L_{1} + \cdots + L_{T-1} + L_{T} \qquad \text{(16)}
@@ -293,12 +320,15 @@ The term q(xₜ₋₁|xₜ, x₀) is referred to as _“forward process posterio
 
 During training, our DL model learns to approximate the parameters of this posterior in order to minimize the KL divergence.
 
-<p align="center">
-<img src="readme_material//diffusion_training.gif" width=700>
-</p>
-<p align="center">
-Figure 4: Stochastic sampling process (noisy images on top, predicted images on bottom)
-</p>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/diffusion_training.gif" class="img-fluid rounded z-depth-1" zoomable=true %}
+            <figcaption class="text-center mt-2">Figure 4: Stochastic sampling process (noisy images on top, predicted images on bottom)</figcaption>
+        </figure>
+    </div>
+</div>
+
 
 
 ## Equivariant Diffusion Models (EDM) for 3D molecule generation
@@ -331,13 +361,34 @@ $$p(y|x) = p(\mathbf{R}y|\mathbf{R}x) \qquad \text{(21)}$$
 To uphold this property throughout the diffusion process, the Markov chain transition probability distributions at every 
 time step $t$ must be roto-invariant, otherwise rotations would alter the likelihood, breaking this desired equivariance property.
 
-<p align="center">
-  <img src="readme_material/roto_symetry_gaus.png" alt="Diffusion in nature" width="250" />
-  <img src="readme_material/roto_symetry_donut.png" alt="Diffusion in model" width="250" />
-</p>
-<p align="center">
-Figure 5: Examples of 2D roto-invariant distributions 
-</p>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/roto_symetry_gaus.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            <figcaption class="text-center mt-2">Diffusion in nature</figcaption>
+        </figure>
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/roto_symetry_donut.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            <figcaption class="text-center mt-2">Diffusion in model</figcaption>
+        </figure>
+    </div>
+</div>
+<div class="row">
+    <div class="col text-center mt-3">
+        <p>Figure 5: Examples of 2D roto-invariant distributions</p>
+    </div>
+</div>
+
+<style>
+    .custom-figure .custom-image {
+        height: 250px; /* Set a fixed height for both images */
+        width: auto; /* Maintain aspect ratio and adjust width accordingly */
+        max-width: 100%; /* Ensure the image doesn't exceed the container width */
+    }
+</style>
+
 
 
 As the EDM authors point out, an invariant distribution composed with an equivariant invertible function results in an
@@ -383,19 +434,19 @@ a diagonal covariance matrix.
 
 Using the KL divergence loss term introduced in DDPM with the EDM model parametrization simplifies the loss function to:
 
-<p align="center">
-<img src="readme_material/EDM_eq17.png" alt="" width="300" />
-</p>
-<p align="center">
-$\qquad \text{(22)}$
-</p>
+$$
+\mathcal{L}_t = \mathbb{E}_{\epsilon_t \sim \mathcal{N}_{x_h}(0, \mathbf{I})} \left[ \frac{1}{2} w(t) \| \epsilon_t - \hat{\epsilon}_t \|^2 \right] \qquad \text{(22)}
+$$
 
 
 
 
 
 
-where $\( w(t) = \left(1 - \frac{\text{SNR}(t-1)}{\text{SNR}(t)}\right) \)$ and $\( \hat{\epsilon}_t = \phi(z_t, t) \)$.
+
+
+where 
+$\( w(t) = \left(1 - \frac{\text{SNR}(t-1)}{\text{SNR}(t)}\right) \)$ and $\( \hat{\epsilon}_t = \phi(z_t, t) \)$.
 
 However, the EDM authors found that the model had better empirical performance with a constant $w(t) = 1$, disregarding the
 signal-to-noise ration (SNR). Thus, the loss term effectively simplifies to a MSE.
@@ -415,12 +466,15 @@ This is where Consistency Models really shine. This new family of models reduces
 To understand consistency models, one must look at diffusion from a slightly different perspective than it's usually presented.
 Consider the transfer of mass under the data probability distribution in time.
 
-<p align="center">
-<img src="readme_material//bimodal_to_gaussian_plot.png" alt="Bimodal_to_Gaussian" width="300" />
-</p>
-<p align="center">
-Figure 6: Illustration of a bimodal distribution evolving to a Gaussian over time
-</p>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/bimodal_to_gaussian_plot.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            <figcaption class="text-center mt-2">Figure 6: Illustration of a bimodal distribution evolving to a Gaussian over time</figcaption>
+        </figure>
+    </div>
+</div>
+
 
 Such process are often well described with a differential equation. In the next sections we look closely at the work of Yang Song [25, 26] and others to examine how they leverage the existence of such an Ordinary Differential Equation (ODE) to generate strong
 samples much faster.
@@ -462,12 +516,15 @@ $$\frac{dx_t}{dt} = -ts\phi(\mathbf{x}_t, t) \qquad \text{(25)}$$
 With $\mathbf{\hat{x}}_T$ sampled from the specified Gaussian at time $T$, the PF ODE can be solved backwards in time to obtain
 a solution trajectory mapping all points along the way to the initial data distribution at time $\epsilon$.
 
-<p align="center">
-<img src="readme_material//consistency_models_pf_ode.png" alt="Consistency PF ODE" width="500" />
-</p>
-<p align="center">
-Figure 7: Solution trajectories of the PF ODE. [5]
-</p>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/consistency_models_pf_ode.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            <figcaption class="text-center mt-2">Figure 7: Solution trajectories of the PF ODE. [5]</figcaption>
+        </figure>
+    </div>
+</div>
+
 
 <br>
 
@@ -498,7 +555,7 @@ discretized time-step $t$ between $\epsilon$ and $T$.
 
 **Consistency Function**
 
-Given a solution trajectory $\\{\mathbf{x}_t\\}$, we define the _consistency function_ as:
+Given a solution trajectory $${\mathbf{x}_t}$$, we define the _consistency function_ as:
 
 <p align="center">
 $f:$ $(\mathbf{x}_t, t)$ $\to$ $\mathbf{x}_{\epsilon}$ 
@@ -561,13 +618,15 @@ With a fully trained consistency model $f_\theta(\cdot, \cdot)$, we can generate
 Gaussian $\hat{x_T}$ $\sim \mathcal{N}(0, T^2I)$ and propagating this through the consistency model to obtain
 samples on the data distribution $\hat{x_{\epsilon}}$ $= f_\theta(\hat{x_T}, T)$ with as little as one diffusion step.
 
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/consistency_on_molecules.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            <figcaption class="text-center mt-2">Figure 8: Visualization of PF ODE trajectories for molecule generation in 3D. [6]</figcaption>
+        </figure>
+    </div>
+</div>
 
-<p align="center">
-<img src="readme_material//consistency_on_molecules.png" alt="Consistency Graph 1" width="600"/>
-</p>
-<p align="center">
-Figure 8: Visualization of PF ODE trajectories for molecule generation in 3D. [6]
-</p>
 
 ### Training Consistency Models
 
@@ -629,31 +688,82 @@ during sampling.
 We were able to successfully train EDM as a consistency model in isolation. We achieved nearly identical training
 loss curves, both in magnitude of the NLL and convergence rate as shown in figure 9: 
 
-<p align="center">
-  <img src="readme_material/results_edm_orig_train_loss.png" alt="Diffusion in nature" width="350" />
-  <img src="readme_material/results_consistency_train_loss.png" alt="Diffusion in model" width="350" />
-</p>
-<p align="center">
-Figure 9: Training loss curves for original EDM (left), and consistency model EDM (right)
-</p>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/results_edm_orig_train_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            <figcaption class="text-center mt-2">Training loss curves for original EDM</figcaption>
+        </figure>
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/results_consistency_train_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            <figcaption class="text-center mt-2">Training loss curves for consistency model EDM</figcaption>
+        </figure>
+    </div>
+</div>
+<div class="row">
+    <div class="col text-center mt-3">
+        <p>Figure 9: Training loss curves for original EDM (left), and consistency model EDM (right)</p>
+    </div>
+</div>
+
+<style>
+    .custom-figure .custom-image {
+        height: 350px; /* Set a fixed height for both images */
+        width: auto; /* Maintain aspect ratio and adjust width accordingly */
+        max-width: 100%; /* Ensure the image doesn't exceed the container width */
+    }
+</style>
+
 
 For validation and testing, we compared samples from an EMA model against the corresponding ground truth sample,
 since consistency models are trained to produce samples directly on the data distribution. 
 We achieved similar convergence rates for both val and test losses but with a different magnitude due to the 
 changed objective as show on figure 10:
 
-<p align="center">
-  <img src="readme_material/results_edm_orig_val_loss.png" alt="Diffusion in nature" width="350" />
-  <img src="readme_material/results_consistency_val_loss.png" alt="Diffusion in model" width="350" />
-</p>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/results_edm_orig_val_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            <figcaption class="text-center mt-2">Val loss curves for original EDM</figcaption>
+        </figure>
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/results_consistency_val_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            <figcaption class="text-center mt-2">Val loss curves for consistency model EDM</figcaption>
+        </figure>
+    </div>
+</div>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/results_edm_orig_test_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            <figcaption class="text-center mt-2">Test loss curves for original EDM</figcaption>
+        </figure>
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/results_consistency_test_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            <figcaption class="text-center mt-2">Test loss curves for consistency model EDM</figcaption>
+        </figure>
+    </div>
+</div>
+<div class="row">
+    <div class="col text-center mt-3">
+        <p>Figure 10: Val (top) and Test (bottom) loss curves for original EDM (left), and consistency model EDM (right)</p>
+    </div>
+</div>
 
-<p align="center">
-  <img src="readme_material/results_edm_orig_test_loss.png" alt="Diffusion in nature" width="350" />
-  <img src="readme_material/results_consistency_test_loss.png" alt="Diffusion in model" width="350" />
-</p>
-<p align="center">
-Figure 10: Val (top) and Test (bottom) loss curves for original EDM (left), and consistency model EDM (right)
-</p>
+<style>
+    .custom-figure .custom-image {
+        height: 350px; /* Set a fixed height for all images */
+        width: auto; /* Maintain aspect ratio and adjust width accordingly */
+        max-width: 100%; /* Ensure the image doesn't exceed the container width */
+    }
+</style>
+
 
 These results were obtained using the same EGNN back-bone, batch-size, 
 learning rate, and other relevant hyperparameters, only differing in the number of epochs completed.
@@ -664,13 +774,15 @@ Using single-step sampling with consistency models, we were only able to reliabl
 the best case scenario with a large batch size show is figure 11. This low atom stability number could be due to the architecture and the way one step generation works in consistency models. We leave as a future expirement to try different values of sampling other than one step. We were not successful in generating any stable molecules using
 the consistency model.
 
-<p align="center">
-  <img src="readme_material/results_consistency_atom_stability.png" alt="Diffusion in nature" width="350" />
-</p>
-<p align="center">
-Figure 11: Best results for atom stability metric using single-step sampling with consistency models trained on
-batch_size = 1024 for improved stability.
-</p>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/results_consistency_atom_stability.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            <figcaption class="text-center mt-2">Figure 11: Best results for atom stability metric using single-step sampling with consistency models trained on batch_size = 1024 for improved stability.</figcaption>
+        </figure>
+    </div>
+</div>
+
 
 The controlled trade-off between speed and sample quality should be possible with multi-step sampling,
 however, all attempts to make multi-step sampling work resulted in decreased atom stability. We further 
