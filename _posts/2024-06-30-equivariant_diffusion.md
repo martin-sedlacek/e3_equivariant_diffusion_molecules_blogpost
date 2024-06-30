@@ -99,14 +99,37 @@ To learn and operate on such structured inputs, Graph Neural Networks (GNNs) (TB
 operating with the message passing paradigm (TBA - citation). This architecture consists of several layers, 
 each of which updates the representation of each node, using the information in nearby nodes.
 
+<style>
+.custom-img-size {
+    width: 50%; /* Adjust width as needed */
+    height: auto; /* Maintains aspect ratio */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.custom-img-size-2 {
+
+    width: 60%; /* Adjust width as needed */
+    height: auto; /* Maintains aspect ratio */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+</style>
+
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/message_passing.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/message_passing.png" class="img-fluid rounded z-depth-1 custom-img-size" zoomable=true %}
             <figcaption class="text-center mt-2">Figure 1: Visualization of a message passing network</figcaption>
         </figure>
     </div>
 </div>
+
+
+
+
 
 The previously mentioned E(3) equivariance property of molecules can be injected as an inductive prior into to the model 
 architecture of a message passing graph neural network, resulting in an E(3) EGNN. This property improves generalisation <d-cite key="hoogeboom2022equivariant"></d-cite> and also beats similar non-equivariant Graph Convolution Networks on 
@@ -328,14 +351,16 @@ distribution at time $T$.
 
 Typically, this SDE is designed such that $p_T(\mathbf{x})$ at the final time-step $T$ is close to a tractable Gaussian.
 
+
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/bimodal_to_gaussian_plot.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/bimodal_to_gaussian_plot.png" class="img-fluid rounded z-depth-1 custom-img-size-2" zoomable=true %}
             <figcaption class="text-center mt-2">Figure 6: Illustration of a bimodal distribution evolving to a Gaussian over time</figcaption>
         </figure>
     </div>
 </div>
+
 
 <!--- 1400 words --->
 
