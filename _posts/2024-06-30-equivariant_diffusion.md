@@ -39,17 +39,15 @@ _styles: >
 
 ## Introduction
 
-
-In this blog post, we introduce and discuss ["Equivariant Diffusion for Molecule Generation in 3D"](https://arxiv.org/abs/2203.17003) <d-cite key="hoogeboom2022equivariant"></d-cite>, 
+In this blog post, we discuss the paper ["Equivariant Diffusion for Molecule Generation in 3D"](https://arxiv.org/abs/2203.17003) <d-cite key="hoogeboom2022equivariant"></d-cite>, 
 which first introduced 3D molecule generation using diffusion models. Their Equivariant Diffusion Model (EDM) also
-incorporating an Equivariant Graph Neural Network (EGNN) architecture, effectively grounding the model with inductive
+incorporated an Equivariant Graph Neural Network (EGNN) architecture, effectively grounding the model with inductive
 priors about the symmetries in 3D space. EDM demonstrated strong improvement over other (non-diffusion) generative 
 methods for molecules at the time, and inspired many subsequent works <d-cite key="anstine2023generative"></d-cite><d-cite key="corso2023diffdock"></d-cite><d-cite key="igashov2024equivariant"></d-cite><d-cite key="xu2023geometric"></d-cite>. 
 
-Traditional diffusion is unfortunately bottle-necked by the sequential denoising process, which can be slow and 
+Most diffusion models are unfortunately bottle-necked by the sequential denoising process, which can be slow and 
 computationally expensive <d-cite key="song2023consistency"></d-cite>. Hence, we also introduce ["Consistency Models"](https://arxiv.org/abs/2303.01469) <d-cite key="song2023consistency"></d-cite>
-and aim to demonstrate that an EDM can be trained significantly faster in this framework, enabling it to generate 
-samples with as little as a single step.
+and demonstrate that an EDM can generate samples up to _24x faster_ in this paradigm with as little as a single step.
 
 <!---
 Using Consistency Models can be a step towards enabling much larger GNN backbones, eventually observing 
@@ -85,15 +83,13 @@ for all $g \in G$, where $S_g,T_g$ are linear representations related to the gro
 The three transformations: _translation, rotation, and reflection_, form the Euclidean group $E(3)$, which is the group of all aforementioned isometries in three-dimensional space, for which $S_g$ and 
 $T_g$ can be represented by a translation $t$ and an orthogonal matrix $R$ that rotates or reflects coordinates. 
 
-A function $f$ is then equivariant to a rotation or reflection $R$ if: 
+A function $f$ is then equivariant to a rotation or reflection $R$ if transforming its input results in an equivalent transformation of its output <d-cite key="hoogeboom2022equivariant"></d-cite>: 
 
 $$
 \begin{align}
 Rf(x) = f(Rx)
 \end{align}
-$$
-
-meaning transforming its input results in an equivalent transformation of its output. <d-cite key="hoogeboom2022equivariant"></d-cite>
+$$ 
 
 <br>
 
@@ -101,13 +97,14 @@ meaning transforming its input results in an equivalent transformation of its ou
 
 
 #### Introducing Equivariant Graph Neural Networks (EGNNs)
-Molecules can very naturally be represented with graph structures, where the nodes are the atoms and edges their bonds. 
+Molecules can very naturally be represented with graph structures, where the nodes are atoms and edges their bonds. 
 The features of each atom, such as its element type or charge can be encoded into an embedding $\mathbf{h}_i \in \mathbb{R}^d$ 
-alongside with its 3D position $\mathbf{x}_i \in \mathbb{R}^3$.
+alongside with teh atoms 3D position $\mathbf{x}_i \in \mathbb{R}^3$.
 
 To learn and operate on such structured inputs, Graph Neural Networks (GNNs) <d-cite key="zhou2021graphneuralnetworksreview"></d-cite> 
-have been developed, operating with the message passing paradigm <d-cite key="gilmer2017neuralmessagepassingquantum"></d-cite>. This architecture consists of several layers, 
-each of which updates the representation of each node, using the information in nearby nodes.
+have been developed, falling under the message passing paradigm <d-cite key="gilmer2017neuralmessagepassingquantum"></d-cite>. 
+This architecture consists of several layers, each of which updates the representation of each node, using the information 
+in nearby nodes.
 
 <style>
 .custom-img-size {
@@ -132,14 +129,10 @@ each of which updates the representation of each node, using the information in 
     <div class="col-sm mt-3 mt-md-0">
         <figure>
             {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/message_passing.png" class="img-fluid rounded z-depth-1 custom-img-size" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure 1: Visualization of a message passing network</figcaption>
+            <figcaption class="text-center mt-2">Figure 1: visualization of a message passing network</figcaption>
         </figure>
     </div>
 </div>
-
-
-
-
 
 The previously mentioned E(3) equivariance property of molecules can be injected as an inductive prior into to the model 
 architecture of a message passing graph neural network, resulting in an E(3) EGNN. This property improves generalisation <d-cite key="hoogeboom2022equivariant"></d-cite> and also beats similar non-equivariant Graph Convolution Networks on 
@@ -193,7 +186,7 @@ between the nodes and these distances are not changed by isometric transformatio
 ## Equivariant Diffusion Models (EDM)
 This section introduces diffusion models and describes how their predictions can be made E(3) equivariant. 
 The categorical properties of atoms are already invariant to E(3) transformations, hence, we are only 
-interested in enforcing property on the sampled atom positions.
+interested in enforcing this property on the sampled atom positions.
 
 ### What are Diffusion Models?
 
@@ -267,8 +260,8 @@ Equivariance to rotations and reflections effectively means that if any orthogon
 applied to a sample $$\mathbf{x}_t$$ at any given time step $t$, we should still generate a correspondingly rotated 
 "next best sample" $\mathbf{R}\mathbf{x}_{t+1}$ at time $t+1$. 
 
-In other words, the likelihood of this next best sample does not depend on the molecules rotation and the probability 
-distribution for each transition in the Markov Chain is roto-invariant:
+In other words, the likelihood of this next best sample does not depend on the molecule's rotation and the probability 
+distribution for each transition in the Markov Chain is hence roto-invariant:
 
 $$
 \begin{align}
@@ -302,14 +295,15 @@ $$
     }
 </style>
 
-An invariant distribution composed with an equivariant invertible function results in an invariant distribution <d-cite key="kohler2020equivariant"></d-cite>. 
+An invariant distribution composed with an equivariant invertible function results in another invariant distribution <d-cite key="kohler2020equivariant"></d-cite>. 
 Furthermore, if $x \sim p(x)$ is invariant to a group, and the transition probabilities of a Markov chain $y \sim p(y|x)$ 
 are equivariant, then the marginal distribution of $y$ at any time step $t$ is also invariant to that group <d-cite key="xu2022geodiff"></d-cite>.
 
-Since the underlying EGNN already ensures equivariance, the initial sampling distribution can easily be constrained 
-to something roto-invariant, such as a simple mean zero Gaussian with a diagonal covariance matrix, as seen in Figure 3 (left).
+Since the underlying EGNN already ensures equivariant transformation, the remaining constraint can easily be achieved by 
+setting the initial sampling distribution to something roto-invariant, such as a simple mean zero Gaussian with a 
+diagonal covariance matrix, as seen in Figure 3 (left).
 
-Translations require a few more tricks. It has been shown, that it is impossible to have non-zero distributions 
+Translation equivariance requires a few more tricks. It has been shown, that it is impossible to have non-zero distributions 
 invariant to translations <d-cite key="satorras2021en"></d-cite>. Intuitively, the translation invariance property 
 means that any point $\mathbf{x}$ results in the same assigned $p(\mathbf{x})$, leading to a uniform distribution, 
 which, if stretched over an unbounded space, would be approaching zero-valued probabilities thus not integrating 
