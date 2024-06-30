@@ -17,7 +17,7 @@ authors:
     affiliations:
       name: VU
 
-bibliography: 2024-06-30-equivariant_consistency.bib
+bibliography: 2024-06-30-equivariant_diffusion.bib
 
 toc:
   - name: Introduction
@@ -110,7 +110,7 @@ Figure 1: Visualization of a message passing network (Credit: Yuki Asano)
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/message_passing.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/message_passing.png" class="img-fluid rounded z-depth-1" zoomable=true %}
             <figcaption class="text-center mt-2">Figure 1: Message passing</figcaption>
         </figure>
     </div>
@@ -166,13 +166,13 @@ inspired scientists to create models of this behaviour. When applied to generati
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/Diffusion_microscopic.gif" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/Diffusion_microscopic.gif" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
             <figcaption class="text-center mt-2">Physical diffusion</figcaption>
         </figure>
     </div>
     <div class="col-sm mt-3 mt-md-0">
         <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/Diffusion_models_flower.gif" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/Diffusion_models_flower.gif" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
             <figcaption class="text-center mt-2">Generative modelling with diffusion</figcaption>
         </figure>
     </div>
@@ -224,7 +224,7 @@ $$
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/ddpm_figure.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/ddpm_figure.png" class="img-fluid rounded z-depth-1" zoomable=true %}
             <figcaption class="text-center mt-2">Figure 3: The Markov process of forward and reverse diffusion <d-cite key="ho2020denoising"></d-cite></figcaption>
         </figure>
     </div>
@@ -323,7 +323,7 @@ During training, our DL model learns to approximate the parameters of this poste
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/diffusion_training.gif" class="img-fluid rounded z-depth-1" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/diffusion_training.gif" class="img-fluid rounded z-depth-1" zoomable=true %}
             <figcaption class="text-center mt-2">Figure 4: Stochastic sampling process (noisy images on top, predicted images on bottom)</figcaption>
         </figure>
     </div>
@@ -364,13 +364,13 @@ time step $t$ must be roto-invariant, otherwise rotations would alter the likeli
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/roto_symetry_gaus.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/roto_symetry_gaus.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
             <figcaption class="text-center mt-2">Diffusion in nature</figcaption>
         </figure>
     </div>
     <div class="col-sm mt-3 mt-md-0">
         <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/roto_symetry_donut.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/roto_symetry_donut.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
             <figcaption class="text-center mt-2">Diffusion in model</figcaption>
         </figure>
     </div>
@@ -469,7 +469,7 @@ Consider the transfer of mass under the data probability distribution in time.
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/bimodal_to_gaussian_plot.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/bimodal_to_gaussian_plot.png" class="img-fluid rounded z-depth-1" zoomable=true %}
             <figcaption class="text-center mt-2">Figure 6: Illustration of a bimodal distribution evolving to a Gaussian over time</figcaption>
         </figure>
     </div>
@@ -519,7 +519,7 @@ a solution trajectory mapping all points along the way to the initial data distr
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/consistency_models_pf_ode.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/consistency_models_pf_ode.png" class="img-fluid rounded z-depth-1" zoomable=true %}
             <figcaption class="text-center mt-2">Figure 7: Solution trajectories of the PF ODE. <d-cite key="dosovitskiy2020image"></d-cite></figcaption>
         </figure>
     </div>
@@ -621,7 +621,7 @@ samples on the data distribution $\hat{x_{\epsilon}}$ $= f_\theta(\hat{x_T}, T)$
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/consistency_on_molecules.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/consistency_on_molecules.png" class="img-fluid rounded z-depth-1" zoomable=true %}
             <figcaption class="text-center mt-2">Figure 8: Visualization of PF ODE trajectories for molecule generation in 3D. <d-cite key="fan2023ecconf"></d-cite></figcaption>
         </figure>
     </div>
@@ -691,13 +691,13 @@ loss curves, both in magnitude of the NLL and convergence rate as shown in figur
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/results_edm_orig_train_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_train_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
             <figcaption class="text-center mt-2">Training loss curves for original EDM</figcaption>
         </figure>
     </div>
     <div class="col-sm mt-3 mt-md-0">
         <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/results_consistency_train_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/results_consistency_train_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
             <figcaption class="text-center mt-2">Training loss curves for consistency model EDM</figcaption>
         </figure>
     </div>
@@ -725,13 +725,13 @@ changed objective as show on figure 10:
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/results_edm_orig_val_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_val_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
             <figcaption class="text-center mt-2">Val loss curves for original EDM</figcaption>
         </figure>
     </div>
     <div class="col-sm mt-3 mt-md-0">
         <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/results_consistency_val_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/results_consistency_val_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
             <figcaption class="text-center mt-2">Val loss curves for consistency model EDM</figcaption>
         </figure>
     </div>
@@ -739,13 +739,13 @@ changed objective as show on figure 10:
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/results_edm_orig_test_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/results_edm_orig_test_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
             <figcaption class="text-center mt-2">Test loss curves for original EDM</figcaption>
         </figure>
     </div>
     <div class="col-sm mt-3 mt-md-0">
         <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/results_consistency_test_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/results_consistency_test_loss.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
             <figcaption class="text-center mt-2">Test loss curves for consistency model EDM</figcaption>
         </figure>
     </div>
@@ -777,7 +777,7 @@ the consistency model.
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
         <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_consistency/results_consistency_atom_stability.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/results_consistency_atom_stability.png" class="img-fluid rounded z-depth-1" zoomable=true %}
             <figcaption class="text-center mt-2">Figure 11: Best results for atom stability metric using single-step sampling with consistency models trained on batch_size = 1024 for improved stability.</figcaption>
         </figure>
     </div>
