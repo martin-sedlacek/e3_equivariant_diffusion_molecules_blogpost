@@ -1,23 +1,23 @@
 ---
 layout: distill
-title: Equivariant Consistency for molecule generation
-description: Discussing Equivariant molecule generation using Consistency Models.
-tags: molecule generation, consistency models
+title: Equivariant Diffusion for Molecule Generation in 3D using Consistency Models
+description: <p> Introduction to the seminal papers &quot;Equivariant Diffusion for Molecule Generation in 3D&quot; and &quot;Consistency Models&quot; with an adaptation fusing the two together for fast molecule generation. </p> 
+tags: equivariance, diffusion, molecule generation, consistency models
 giscus_comments: true
 date: 2024-06-30
 featured: true
 
 authors:
-  - name: Martin Sedlacek
+  - name: Martin Sedlacek*
+    url: https://martin-sedlacek.com/
+    affiliations:
+      name: University of Amsterdam
+  - name: Antonios Vozikis*
     url: "#"
     affiliations:
-      name: UvA
-  - name: Antonios Vozikis
-    url: "#"
-    affiliations:
-      name: VU
+      name: Vrije Universiteit Amsterdam
 
-bibliography: 2024-06-30-equivariant_diffusion.bib
+bibliography: equivariant_diffusion/2024-06-30-equivariant_diffusion.bib
 
 toc:
   - name: Introduction
@@ -46,15 +46,15 @@ _styles: >
 ## Introduction
 
 
-In this blog post, we present and discuss the seminal paper ["Equivariant Diffusion for Molecule Generation in 3D"](https://arxiv.org/abs/2203.17003) <d-cite key="hoogeboom2022equivariant"></d-cite>, 
-which presented an Equivariant Diffusion Model (EDM). The authors trained a diffusion model with an 
-Equivariant Graph Neural Network (EGNN) backbone to generate 3D molecules, a novel approach, which 
-demonstrated strong improvement over other (non-diffusion based) generative methods at the time.
-This inspired many subsequent works in the field <d-cite key="anstine2023generative"></d-cite><d-cite key="corso2023diffdock"></d-cite><d-cite key="igashov2024equivariant"></d-cite><d-cite key="xu2023geometric"></d-cite>. However, this method has a major 
-downside: the sequential denoising process of diffusion models can take a large amount of time and compute, 
-bottle-necking their performance <d-cite key="song2023consistency"></d-cite>.
+In this blog post, we introduce and discuss ["Equivariant Diffusion for Molecule Generation in 3D"](https://arxiv.org/abs/2203.17003) <d-cite key="hoogeboom2022equivariant"></d-cite>, 
+which first introduced 3D molecule generation using diffusion models. Their Equivariant Diffusion Model (EDM) also
+incorporating an Equivariant Graph Neural Network (EGNN) architecture, effectively grounding the model with inductive
+priors about the symmetries in 3D space. This work demonstrated strong improvement over other (non-diffusion) generative 
+methods for molecules at the time, and inspired many subsequent works <d-cite key="anstine2023generative"></d-cite><d-cite key="corso2023diffdock"></d-cite><d-cite key="igashov2024equivariant"></d-cite><d-cite key="xu2023geometric"></d-cite>. 
 
-We present two extensions, aimed to increase the speed of the EDM and uncap its potential:
+Traditional diffusion is however, bottle-necked by the sequential denoising process, which can be slow and computationally expensive <d-cite key="song2023consistency"></d-cite>.
+Hence, we also aim to demonstrate that an EDM can be trained significantly faster, uncapping its potential, with the 
+following two extensions:
 
 1. Training EDM as a Consistency Model <d-cite key="song2023consistency"></d-cite>
 2. Faster implementation of the EDM with JAX <d-cite key="bradbury2018jax"></d-cite>
