@@ -197,7 +197,7 @@ interested in enforcing property on the sampled atom positions.
 
 Diffusion models <d-cite key="sohl2015deep"></d-cite><d-cite key="ho2020denoising"></d-cite> are inspired by the principles 
 of diffusion in physics, and model the flow of a data distribution to pure noise over time. A neural network is then 
-trained to learn a reverse process that reconstructs samples on the data distribution from pure noise samples.
+trained to learn a reverse process that reconstructs samples on the data distribution from pure noise.
 
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
@@ -259,7 +259,7 @@ where $v_T \sim \mathcal{N}(0, \mathbf{I})$ is a sample from the pure Gaussian n
 
 <!--- 850 words --->
 
-### Enforcing E(3) equivariance
+### Enforcing E(3) equivariant diffusion
 <!--- check rotations and reflections or jsut rotations? --->
 Equivariance to rotations and reflections effectively means that if any orthogonal rotation matrix $\mathbf{R}$ is 
 applied to a sample $$\mathbf{x}_t$$ at any given time step $t$, we should still generate a correspondingly rotated 
@@ -555,21 +555,50 @@ where $\mathbf{z} \sim \mathcal{N}(0, I)$.
 Crucially, $\mathcal{L}(\theta, \theta^-)$ only depends on the online network $f_\theta$, and the target network
 $f_{\theta^-}$, while being completely agnostic to diffusion model parameters $\phi$.
 
+<!--- ~1900 words --->
+
 ## Experiments
 
-TBA
+We replicate the original EDM experimental set-up and evaluate on the QM-9 dataset (TBA - citation). Due to 
+computational constraints and the demonstrational nature of this blogpost, we only trained all models for 
+130 epochs with default hyperparameter settings given by the original EDM implementation (TBA - citation).
+While the default EDM is capable of achieving results much better than reported below in table TBA with more training, 
+it still comfortably outperforms all consistency model variations on all metrics using equal amounts of compute.
+
+| **Model / Metric**              | **Training NLL** | **Validation NLL** | **Best Cross-Validated Test NLL** | **Best Atom Stability** | **Best Molecule Stability** |
+|---------------------------------|------------------|--------------------|-----------------------------------|-------------------------|------------------------------|
+| Default EDM                     | 2.524            | -30.066            | -17.178                           | 0.873                   | 0.196                        |
+| Consistency Model (single step) | 2.482            | 94176              | 80363                             | 0.19                    | 0                            |
+| Consistency Model (multi-step)  | 2.484            | 166264             | 179003                            | 0.12                    | 0                            |
+
+<div class="caption" style="text-align: center;">
+    Table 1: EDM and Consistency Model results on QM-9 dataset
+</div>
+
+We observed that the consistency models converge on the training set with similar speed as the regular EDM, even
+achieving slightly lower training NLLs. However, they fail to generalize to the validation and test sets with
+a much lower atom and stability and no molecule stability at all. These results are surprisingly poor, given that
+the dataset is not particularly complicated, and we suspect that the model struggles with generalization in
+single-step sampling mode.
+
+To rectify this, we attempted to use multi-step sampling, which  should in theory allow us to replicate results 
+close to the EDM, we observed no such improvement in our experiments. We tested multiple different amounts of steps 
+and report results for 100, which performed best overall. Notably, the multi-step sampling yield worse results 
+than the single-step sampling most of the time. This is a highly surprising result, and we suspect that either 
+of two things: 1.) there is a hidden bug in out implementation 2.) the high-level descriptions of multi-step 
+sampling in related works (TBA - citation) miss implementation details needed to successfully replicate a 
+similar improvement.
+
+TBA - timing the molecule sampling vs EDM vs consistency
 
 ## Discussion
 
 Consistency models are able to reduce the number of steps during de-noising up to just a single step, significantly 
-speeding up the sampling process, while allowing for a controlled trade-off between speed and sample quality.
-We were able to successfully demonstrate this and train an EDM as a consistency model in isolation, achieving nearly 
-identical training and validation losses as the original implementation. However, using the single-step 
-only reliably achieves around 15% atom stability in the best case scenario, compared with over 90% for the default EDM.
-Using multi-step sampling should in theory yield competitive results, but we observed no such improvement. 
+speeding up the sampling process. We were able to successfully demonstrate this and train an EDM as a consistency 
+model in isolation, achieving nearly identical training loss with (TBA - X times faster sampling times). However, using the single-step only achieves 
+up to 19% atom stability in the best case scenario, compared with 87% for the default EDM. Using multi-step 
+sampling should in theory yield competitive results, but we observed no such improvement. 
 
 Since it cannot be ruled out that this was caused by a bug in our multi-step sampling code, we hope to continue 
 investigating if the consistency model paradigm can reliably be used for molecule generation in the future
-and show more competitive results as previous works suggest <d-cite key="fan2023ecconf"></d-cite>.
-
-<!--- 2000 words --->
+and show more competitive results as previous works suggest is possible <d-cite key="fan2023ecconf"></d-cite>.

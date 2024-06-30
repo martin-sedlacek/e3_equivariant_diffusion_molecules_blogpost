@@ -1,22 +1,22 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-06-30T22:46:55+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-01T00:02:15+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
 </subtitle><entry><title type="html">Equivariant Diffusion for Molecule Generation in 3D using Consistency Models</title><link href="http://localhost:4000/blog/2024/equivariant_diffusion/" rel="alternate" type="text/html" title="Equivariant Diffusion for Molecule Generation in 3D using Consistency Models" /><published>2024-06-30T00:00:00+02:00</published><updated>2024-06-30T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/equivariant_diffusion</id><content type="html" xml:base="http://localhost:4000/blog/2024/equivariant_diffusion/"><![CDATA[<h2 id="introduction">Introduction</h2>
 
 <p>In this blog post, we introduce and discuss <a href="https://arxiv.org/abs/2203.17003">“Equivariant Diffusion for Molecule Generation in 3D”</a> <d-cite key="hoogeboom2022equivariant"></d-cite>, 
 which first introduced 3D molecule generation using diffusion models. Their Equivariant Diffusion Model (EDM) also
 incorporating an Equivariant Graph Neural Network (EGNN) architecture, effectively grounding the model with inductive
-priors about the symmetries in 3D space. EDM demonstrated strong improvement over other (non-diffusion) generative
+priors about the symmetries in 3D space. EDM demonstrated strong improvement over other (non-diffusion) generative 
 methods for molecules at the time, and inspired many subsequent works <d-cite key="anstine2023generative"></d-cite><d-cite key="corso2023diffdock"></d-cite><d-cite key="igashov2024equivariant"></d-cite><d-cite key="xu2023geometric"></d-cite>.</p>
 
 <p>Traditional diffusion is unfortunately bottle-necked by the sequential denoising process, which can be slow and 
 computationally expensive <d-cite key="song2023consistency"></d-cite>. Hence, we also introduce <a href="https://arxiv.org/abs/2303.01469">“Consistency Models”</a> <d-cite key="song2023consistency"></d-cite>
-and aim to demonstrate that an EDM can be trained significantly faster in this framework, enabling it to generate
+and aim to demonstrate that an EDM can be trained significantly faster in this framework, enabling it to generate 
 samples with as little as a single step.</p>
 
-<p>Using Consistency Models can be a step towards enabling much larger GNN backbones, eventually observing
-similar scaling effects as other domains including language <d-cite key="brown2020language"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="touvron2023llama"></d-cite>
+<p>Using Consistency Models can be a step towards enabling much larger GNN backbones, eventually observing 
+similar scaling effects as other domains including language <d-cite key="brown2020language"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="touvron2023llama"></d-cite> 
 or image and video generation <d-cite key="liu2024sora"></d-cite><d-cite key="ramesh2022hierarchical"></d-cite><d-cite key="rombach2022high"></d-cite><d-cite key="saharia2022photorealistic"></d-cite>.
 Such improvement has been demonstrated in training Graph Neural Networks (GNN) <d-cite key="sriram2022towards"></d-cite>,
-and scaling model parameters to take advantage of increasingly larger compute availability, is generally known to improve
+and scaling model parameters to take advantage of increasingly larger compute availability, is generally known to improve 
 model performance <d-cite key="dosovitskiy2020image"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="krizhevsky2012imagenet"></d-cite>.</p>
 
 <!--- 260 words --->
@@ -39,7 +39,7 @@ T_g(f(x)) = f(S_g(x))
 
 <p>for all $g \in G$, where $S_g,T_g$ are linear representations related to the group element $g$ <d-cite key="serre1977linear"></d-cite>.</p>
 
-<p>The three transformations: <em>translation, rotation, and reflection</em>, form the Euclidean group $E(3)$, which is the group of all aforementioned isometries in three-dimensional space, for which $S_g$ and
+<p>The three transformations: <em>translation, rotation, and reflection</em>, form the Euclidean group $E(3)$, which is the group of all aforementioned isometries in three-dimensional space, for which $S_g$ and 
 $T_g$ can be represented by a translation $t$ and an orthogonal matrix $R$ that rotates or reflects coordinates.</p>
 
 <p>A function $f$ is then equivariant to a rotation or reflection $R$ if:</p>
@@ -130,7 +130,7 @@ $$
 
 $$
 \begin{align}
-\mathbf{h}_i^{l+1} = \phi_h\left(\mathbf{h}_i^l, \sum_{j \neq i} \tilde{e}_{ij} \mathbf{m}_{ij}\right)
+\mathbf{h}_i^{l+1} = \phi_h\left(\mathbf{h}_i^l, \sum_{j \neq i} \tilde{e}_{ij} \mathbf{m}_{ij}\right) 
 \end{align}
 $$
 
@@ -156,14 +156,14 @@ between the nodes and these distances are not changed by isometric transformatio
 
 <h2 id="equivariant-diffusion-models-edm">Equivariant Diffusion Models (EDM)</h2>
 <p>This section introduces diffusion models and describes how their predictions can be made E(3) equivariant. 
-The categorical properties of atoms are already invariant to E(3) transformations, hence, we are only
+The categorical properties of atoms are already invariant to E(3) transformations, hence, we are only 
 interested in enforcing property on the sampled atom positions.</p>
 
 <h3 id="what-are-diffusion-models">What are Diffusion Models?</h3>
 
 <p>Diffusion models <d-cite key="sohl2015deep"></d-cite><d-cite key="ho2020denoising"></d-cite> are inspired by the principles 
 of diffusion in physics, and model the flow of a data distribution to pure noise over time. A neural network is then 
-trained to learn a reverse process that reconstructs samples on the data distribution from pure noise samples.</p>
+trained to learn a reverse process that reconstructs samples on the data distribution from pure noise.</p>
 
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
@@ -195,7 +195,7 @@ trained to learn a reverse process that reconstructs samples on the data distrib
 where transition at each time step $t$ adds Gaussian noise with a variance of $\beta_t \in (0,1)$:</p>
 
 \[\begin{align}
-q\left( x_t \mid x_{t-1} \right) := \mathcal{N}\left( x_t ; \sqrt{1-\beta_t} x_{t-1}, \beta_t \mathbf{I} \right)
+q\left( x_t \mid x_{t-1} \right) := \mathcal{N}\left( x_t ; \sqrt{1-\beta_t} x_{t-1}, \beta_t \mathbf{I} \right) 
 \end{align}\]
 
 <p>The whole Markov process leading to time step $T$ is given as a chain of these transitions:</p>
@@ -231,7 +231,7 @@ x_{t-1} = \frac{1}{\sqrt{1 - \beta_t}} \left( x_t - \frac{\beta_t}{\sqrt{1 - \al
 
 <!--- 850 words --->
 
-<h3 id="enforcing-e3-equivariance">Enforcing E(3) equivariance</h3>
+<h3 id="enforcing-e3-equivariant-diffusion">Enforcing E(3) equivariant diffusion</h3>
 <!--- check rotations and reflections or jsut rotations? --->
 <p>Equivariance to rotations and reflections effectively means that if any orthogonal rotation matrix $\mathbf{R}$ is 
 applied to a sample \(\mathbf{x}_t\) at any given time step $t$, we should still generate a correspondingly rotated 
@@ -588,24 +588,86 @@ can then be defined as:</p>
 <p>Crucially, $\mathcal{L}(\theta, \theta^-)$ only depends on the online network $f_\theta$, and the target network
 $f_{\theta^-}$, while being completely agnostic to diffusion model parameters $\phi$.</p>
 
+<!--- ~1900 words --->
+
 <h2 id="experiments">Experiments</h2>
 
-<p>TBA</p>
+<p>We replicate the original EDM experimental set-up and evaluate on the QM-9 dataset (TBA - citation). Due to 
+computational constraints and the demonstrational nature of this blogpost, we only trained all models for 
+130 epochs with default hyperparameter settings given by the original EDM implementation (TBA - citation).
+While the default EDM is capable of achieving results much better than reported below in table TBA with more training, 
+it still comfortably outperforms all consistency model variations on all metrics using equal amounts of compute.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Model / Metric</strong></th>
+      <th><strong>Training NLL</strong></th>
+      <th><strong>Validation NLL</strong></th>
+      <th><strong>Best Cross-Validated Test NLL</strong></th>
+      <th><strong>Best Atom Stability</strong></th>
+      <th><strong>Best Molecule Stability</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Default EDM</td>
+      <td>2.524</td>
+      <td>-30.066</td>
+      <td>-17.178</td>
+      <td>0.873</td>
+      <td>0.196</td>
+    </tr>
+    <tr>
+      <td>Consistency Model (single step)</td>
+      <td>2.482</td>
+      <td>94176</td>
+      <td>80363</td>
+      <td>0.19</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>Consistency Model (multi-step)</td>
+      <td>2.484</td>
+      <td>166264</td>
+      <td>179003</td>
+      <td>0.12</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="caption" style="text-align: center;">
+    Table 1: EDM and Consistency Model results on QM-9 dataset
+</div>
+
+<p>We observed that the consistency models converge on the training set with similar speed as the regular EDM, even
+achieving slightly lower training NLLs. However, they fail to generalize to the validation and test sets with
+a much lower atom and stability and no molecule stability at all. These results are surprisingly poor, given that
+the dataset is not particularly complicated, and we suspect that the model struggles with generalization in
+single-step sampling mode.</p>
+
+<p>To rectify this, we attempted to use multi-step sampling, which  should in theory allow us to replicate results 
+close to the EDM, we observed no such improvement in our experiments. We tested multiple different amounts of steps 
+and report results for 100, which performed best overall. Notably, the multi-step sampling yield worse results 
+than the single-step sampling most of the time. This is a highly surprising result, and we suspect that either 
+of two things: 1.) there is a hidden bug in out implementation 2.) the high-level descriptions of multi-step 
+sampling in related works (TBA - citation) miss implementation details needed to successfully replicate a 
+similar improvement.</p>
+
+<p>TBA - timing the molecule sampling vs EDM vs consistency</p>
 
 <h2 id="discussion">Discussion</h2>
 
 <p>Consistency models are able to reduce the number of steps during de-noising up to just a single step, significantly 
-speeding up the sampling process, while allowing for a controlled trade-off between speed and sample quality.
-We were able to successfully demonstrate this and train an EDM as a consistency model in isolation, achieving nearly 
-identical training and validation losses as the original implementation. However, using the single-step 
-only reliably achieves around 15% atom stability in the best case scenario, compared with over 90% for the default EDM.
-Using multi-step sampling should in theory yield competitive results, but we observed no such improvement.</p>
+speeding up the sampling process. We were able to successfully demonstrate this and train an EDM as a consistency 
+model in isolation, achieving nearly identical training loss with (TBA - X times faster sampling times). However, using the single-step only achieves 
+up to 19% atom stability in the best case scenario, compared with 87% for the default EDM. Using multi-step 
+sampling should in theory yield competitive results, but we observed no such improvement.</p>
 
 <p>Since it cannot be ruled out that this was caused by a bug in our multi-step sampling code, we hope to continue 
 investigating if the consistency model paradigm can reliably be used for molecule generation in the future
-and show more competitive results as previous works suggest <d-cite key="fan2023ecconf"></d-cite>.</p>
-
-<!--- 2000 words --->]]></content><author><name>Anonymous</name></author><category term="equivariance," /><category term="diffusion," /><category term="molecule" /><category term="generation," /><category term="consistency" /><category term="models" /><summary type="html"><![CDATA[Introduction to the seminal papers &quot;Equivariant Diffusion for Molecule Generation in 3D&quot; and &quot;Consistency Models&quot; with an adaptation fusing the two together for fast molecule generation.]]></summary></entry><entry><title type="html">a distill-style blog post</title><link href="http://localhost:4000/blog/2021/distill/" rel="alternate" type="text/html" title="a distill-style blog post" /><published>2021-05-22T00:00:00+02:00</published><updated>2021-05-22T00:00:00+02:00</updated><id>http://localhost:4000/blog/2021/distill</id><content type="html" xml:base="http://localhost:4000/blog/2021/distill/"><![CDATA[<h2 id="equations">Equations</h2>
+and show more competitive results as previous works suggest is possible <d-cite key="fan2023ecconf"></d-cite>.</p>]]></content><author><name>Anonymous</name></author><category term="equivariance," /><category term="diffusion," /><category term="molecule" /><category term="generation," /><category term="consistency" /><category term="models" /><summary type="html"><![CDATA[Introduction to the seminal papers &quot;Equivariant Diffusion for Molecule Generation in 3D&quot; and &quot;Consistency Models&quot; with an adaptation fusing the two together for fast molecule generation.]]></summary></entry><entry><title type="html">a distill-style blog post</title><link href="http://localhost:4000/blog/2021/distill/" rel="alternate" type="text/html" title="a distill-style blog post" /><published>2021-05-22T00:00:00+02:00</published><updated>2021-05-22T00:00:00+02:00</updated><id>http://localhost:4000/blog/2021/distill</id><content type="html" xml:base="http://localhost:4000/blog/2021/distill/"><![CDATA[<h2 id="equations">Equations</h2>
 
 <p>This theme supports rendering beautiful math in inline and display modes using <a href="https://www.mathjax.org/">MathJax 3</a> engine.
 You just need to surround your math expression with <code class="language-plaintext highlighter-rouge">$$</code>, like <code class="language-plaintext highlighter-rouge">$$ E = mc^2 $$</code>.
