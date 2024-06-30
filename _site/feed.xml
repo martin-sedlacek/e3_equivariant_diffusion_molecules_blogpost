@@ -1,5 +1,980 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-05-15T14:46:56+03:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
-</subtitle><entry><title type="html">a distill-style blog post</title><link href="http://localhost:4000/blog/2021/distill/" rel="alternate" type="text/html" title="a distill-style blog post" /><published>2021-05-22T00:00:00+03:00</published><updated>2021-05-22T00:00:00+03:00</updated><id>http://localhost:4000/blog/2021/distill</id><content type="html" xml:base="http://localhost:4000/blog/2021/distill/"><![CDATA[<h2 id="equations">Equations</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-06-30T03:09:03+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
+</subtitle><entry><title type="html">Equivariant Consistency for molecule generation</title><link href="http://localhost:4000/blog/2024/equivariant_consistency/" rel="alternate" type="text/html" title="Equivariant Consistency for molecule generation" /><published>2024-06-30T00:00:00+02:00</published><updated>2024-06-30T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/equivariant_consistency</id><content type="html" xml:base="http://localhost:4000/blog/2024/equivariant_consistency/"><![CDATA[<h2 id="introduction">Introduction</h2>
+
+<p>In this blog post, we present and discuss the seminal paper <a href="https://arxiv.org/abs/2203.17003">“Equivariant Diffusion for Molecule Generation in 3D”</a> <d-cite key="hoogeboom2022equivariant"></d-cite>, 
+which presented an Equivariant Diffusion Model (EDM). The authors trained a diffusion model with an 
+Equivariant Graph Neural Network (EGNN) backbone to generate 3D molecules, a novel approach, which 
+demonstrated strong improvement over other (non-diffusion based) generative methods at the time.
+This inspired many subsequent works in the field <d-cite key="anstine2023generative"></d-cite><d-cite key="corso2023diffdock"></d-cite><d-cite key="igashov2024equivariant"></d-cite><d-cite key="xu2023geometric"></d-cite>. However, this method has a major 
+downside: the sequential denoising process of diffusion models can take a large amount of time and compute, 
+bottle-necking their performance <d-cite key="song2023consistency"></d-cite>.</p>
+
+<p>We present two extensions, aimed to increase the speed of the EDM and uncap its potential:</p>
+
+<ol>
+  <li>Training EDM as a Consistency Model <d-cite key="song2023consistency"></d-cite></li>
+  <li>Faster implementation of the EDM with JAX <d-cite key="bradbury2018jax"></d-cite></li>
+</ol>
+
+<p>Consistency models enable the model to generate samples in a single step, which can be much faster than the sequential 
+sampling in diffusion models. In conjunction with this, we can make the model even faster by implementing the model 
+using the JAX framework. JAX has been shown to improve the speed of certain diffusion models by large amounts, with 
+one study finding a 5x speed improvement in a comparable diffusion model <d-cite key="kang2024efficient"></d-cite>. JAX tends to improve the performance 
+of models that require regular, repetitive computations such as diffusion models.</p>
+
+<p>This increase in efficiency serves several purposes. Most importantly, increased performance enables us to use larger
+models with the same amount of compute. Many previous works across various domains have shown that scaling model
+architectures to more parameters can significantly improve performance <d-cite key="dosovitskiy2020image"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="krizhevsky2012imagenet"></d-cite> in domains including language <d-cite key="brown2020language"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="touvron2023llama"></d-cite>
+as well as images and video <d-cite key="liu2024sora"></d-cite><d-cite key="ramesh2022hierarchical"></d-cite><d-cite key="rombach2022high"></d-cite><d-cite key="saharia2022photorealistic"></d-cite>. Similar scaling effect was observed in Graph Neural Networks (GNN) <d-cite key="sriram2022towards"></d-cite>.
+We hope that, by improving the speed of our models, we can enable the use of larger GNN backbones without requiring
+more expensive compute. Even without compute constraints, increasing speed hastens development and decreases
+the carbon footprint overall.</p>
+
+<p>We also note that these performance improvements are, in theory at least, not exclusive to EDM or GNNs. Many other ML 
+models might be improved through a JAX reimplementation and many diffusion models can be trained as a consistency model.</p>
+
+<h4 id="groups-and-equivariance-for-molecules">Groups and Equivariance for molecules</h4>
+
+<p>Equivariance is a property of certain functions, which ensures that the function’s output transforms in a predictable manner under collections of transformations. This property is valuable in molecular modeling, where it can be used to ensure that the properties of molecular structures are consistent with their symmetries in the real world. specifically, we are interested in ensuring that some structure is preserved in the representation of the molecule when three types of transformations are applied to it: translation, rotation, and reflection.</p>
+
+<p>Formally, function $f$ is said to be equivariant to the action of a group $G$ if:</p>
+
+\[T_g(f(x)) = f(S_g(x)) \qquad \text{(1)}\]
+
+<p>for all $g ∈ G$, where $S_g,T_g$ are linear representations related to the group element $g$ <d-cite key="serre1977linear"></d-cite>. The three transformations we are interested in form the Euclidean group $E(3)$, for which $S_g$ and $T_g$ can be represented by a translation $t$ and an orthogonal matrix $R$ that rotates or reflects coordinates. $f$ is then equivariant to a rotation or reflection $R$ if:</p>
+
+\[Rf(x) = f(Rx) \qquad \text{(2)}\]
+
+<p>meaning transforming its input results in an equivalent transformation of its output. <d-cite key="hoogeboom2022equivariant"></d-cite></p>
+
+<h4 id="en-equivariant-graph-neural-networks-egnns">E(n) Equivariant Graph Neural Networks (EGNNs)</h4>
+
+<p>Generating molecules naturally leans itself into graph representation, with the nodes representing atoms within the
+molecules, and edges representing their bonds. The features $\mathbf{h}_i \in \mathbb{R}^d$ of each atom, such as
+element type, can then be encoded into the embedding of a node alongside it’s position $\mathbf{x}_i \in \mathbb{R}^3$. The previously explained E(3) equivariance property can be used as an inductive prior that improves generalization, and EGNNs are a powerful tool which injects these priors about molecules into the model architecture itself, as the EDM paper had demonstrated <d-cite key="hoogeboom2022equivariant"></d-cite>. Their usefulness is further supported
+by EGNNs beating similar non-equivariant Graph Convolution Networks on molecular generation tasks <d-cite key="verma2022modular"></d-cite>.</p>
+
+<p>The E(n) EGNN is a special type of message-passing Graph Neural Network (GNN) <d-cite key="gilmer2017neural"></d-cite> with explicit rotation and translation equivariance baked in. A traditional message-passing GNN consists of several layers, each of which
+updates the representation of each node, using the information in nearby nodes.</p>
+
+<!-- <p align="center">
+  <img src="readme_material/message_passing.png" alt="Diffusion in nature" width="300" />
+</p>
+<p align="center">
+Figure 1: Visualization of a message passing network (Credit: Yuki Asano)
+</p> -->
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/message_passing-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/message_passing-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/message_passing-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/message_passing.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Figure 1: Message passing</figcaption>
+        </figure>
+    </div>
+</div>
+
+<p>The EGNN specifically contains <em>equivariant</em> convolution layers:</p>
+
+\[\mathbf{x}^{l+1},\mathbf{h}^{l+1}=EGCL[ \mathbf{x}^l, \mathbf{h}^l ] \qquad \text{(3)}\]
+
+<p>The EGCL layer is defined through the formulas:</p>
+
+<div align="center">
+
+$$
+\mathbf{m}_{ij} = \phi_e(\mathbf{h}_i^l, \mathbf{h}_j^l, d^2_{ij}) \qquad \text{(4)}
+$$
+
+$$
+\mathbf{h}_i^{l+1} = \phi_h\left(\mathbf{h}_i^l, \sum_{j \neq i} \tilde{e}_{ij} \mathbf{m}_{ij}\right) \qquad \text{(5)}
+$$
+
+$$
+\mathbf{x}_i^{l+1} = \mathbf{x}_i^l + \sum_{j \neq i} \frac{\mathbf{x}_i^l \mathbf{x}_j^l}{d_{ij} + 1} \phi_x(\mathbf{h}_i^l, \mathbf{h}_j^l, d^2_{ij}) \qquad \text{(6)}
+$$
+
+</div>
+
+<p>where $h_l$ represents the feature $h$ at layer $l$, $x_l$ represents the coordinate at layer $l$ and 
+\(d_{ij}= ||x_i^l-x^l_j||_2\) is the Euclidean distance between nodes \(v_i\) and \(v_j\). A fully connected neural 
+networks is used to learn the functions \(\phi_e\), \(\phi_x\), and \(\phi_h\). At each layer, a message \(m_{ij}\) 
+is computed from the previous layer’s feature representation. Using the previous feature and the sum of these messages, 
+the model computes the next layer’s feature representation.</p>
+
+<p>This architecture then satisfies translation and rotation equivariance. Notably, the messages depend on the distance 
+between the nodes and these distances are not changed by isometric transformations.</p>
+
+<h2 id="equivariant-diffusion-models">Equivariant Diffusion Models</h2>
+
+<p>Diffusion models <d-cite key="sohl2015deep"></d-cite> are deeply rooted within the principles of physics, where the process describes particles moving 
+from an area of higher concentration to an area of lower concentration - a process governed by random, stochastic 
+interactions. In the physical world, this spreading can largely be traced back to the original configuration, which 
+inspired scientists to create models of this behaviour. When applied to generative modelling, we usually aim to reconstruct data from some observed or sampled noise, which is an approach adopted by many powerful diffusion models.</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/Diffusion_microscopic-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/Diffusion_microscopic-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/Diffusion_microscopic-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/Diffusion_microscopic.gif" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Physical diffusion</figcaption>
+        </figure>
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/Diffusion_models_flower-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/Diffusion_models_flower-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/Diffusion_models_flower-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/Diffusion_models_flower.gif" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Generative modelling with diffusion</figcaption>
+        </figure>
+    </div>
+</div>
+<div class="row">
+    <div class="col text-center mt-3">
+        <p>Figure 2: Physical diffusion (left) and generative modelling with diffusion (right)</p>
+    </div>
+</div>
+
+<style>
+    .custom-figure .custom-image {
+        height: 200px; /* Set a fixed height for both images */
+        width: auto; /* Maintain aspect ratio and adjust width accordingly */
+        max-width: 100%; /* Ensure the image doesn't exceed the container width */
+    }
+</style>
+
+<h3 id="denoising-diffusion-probabilistic-models-ddpm">Denoising Diffusion Probabilistic Models (DDPM)</h3>
+
+<p>One of the most widely-used and powerful diffusion models is the Denoising Diffusion Probabilistic Model (DDPM) <d-cite key="ho2020denoising"></d-cite>. In this model, the data is progressively noised and then the model learns to reverse this process, effectively “denoising”. This process allows us to generate new samples from pure noise.</p>
+
+<h3 id="forward-diffusion-process-noising">Forward diffusion process (“noising”)</h3>
+
+<p>In DDPMs the forward noising process is parameterized by a Markov process, where transition at each time step $t$ adds
+Gaussian noise with a variance of $\beta_t \in (0,1)$. We formally write this transition as:</p>
+
+\[\begin{align}
+q\left( x_t \mid x_{t-1} \right) := \mathcal{N}\left( x_t ; \sqrt{1-\beta_t} x_{t-1}, \beta_t \mathbf{I} \right) &amp; \qquad \text{(7)}
+\end{align}\]
+
+<p>The whole Markov process leading to time step $T$ is given as a chain of these transitions:</p>
+
+\[\begin{align}
+q\left( x_1, \ldots, x_T \mid x_0 \right) := \prod_{t=1}^T q \left( x_t \mid x_{t-1} \right) &amp; \qquad \text{(8)}
+\end{align}\]
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/ddpm_figure-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/ddpm_figure-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/ddpm_figure-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/ddpm_figure.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Figure 3: The Markov process of forward and reverse diffusion <d-cite key="ho2020denoising"></d-cite></figcaption>
+        </figure>
+    </div>
+</div>
+
+<h3 id="reverse-diffusion-process-denoising">Reverse diffusion process (“denoising”)</h3>
+
+<p>As Figure 3 shows, the reverse transitions are unknown, hence DDPM approximates them using a neural network 
+parametrized by $\theta$:</p>
+
+\[p_\theta \left( x_{t-1} \mid x_t \right) := \mathcal{N} \left( x_{t-1} ; \mu_\theta \left( x_t, t \right), \Sigma_\theta \left( x_t, t \right) \right) \qquad \text{((9))}\]
+
+<p>Because we know the dynamics of the forward process, we know the variance at each $t$. Therefore, we can fix $\Sigma_\theta \left( x_t, t \right)$ to be $\beta_t \mathbf{I}$.</p>
+
+<p>The network prediction is then only needed to obtain $\mu_\theta \left( x_t, t \right)$, given by:</p>
+
+\[\mu_\theta \left( x_t, t \right) = \frac{1}{\sqrt{\alpha_t}} \left( x_t - \frac{\beta\_t}{\sqrt{1 - \bar{\alpha}\_t}} \epsilon\_\theta \left( x_t, t \right) \right) \qquad \text{(10)}\]
+
+<p>where $\alpha_t = \Pi_{s=1}^t \left( 1 - \beta_s \right)$.</p>
+
+<p>Hence, we can directly predict $x_{t-1}$ from $x_{t}$ using the network $\theta$ as:</p>
+
+\[\begin{align}
+x_{t-1} = \frac{1}{\sqrt{1 - \beta_t}} \left( x_t - \frac{\beta_t}{\sqrt{1 - \alpha_t}} \epsilon_\theta \left( x_t, t \right) \right) + \sqrt{\beta_t} v_t &amp; \qquad \text{((11))}
+\end{align}\]
+
+<p>where $v_T \sim \mathcal{N}(0, \mathbf{I})$ is a sample from the pure Gaussian noise.</p>
+
+<h3 id="training-diffusion-models">Training diffusion models</h3>
+
+<p>The training objective of diffusion-based generative models amounts to <strong>“maximizing the log-likelihood of the sample generated (at the end of the reverse process) which belongs to the original data distribution.”</strong></p>
+
+<p>To maximize the log-likelihood of a gaussian distribution, we need to try and find the parameters of the distribution (μ, σ²) such that it maximizes the <em>likelihood</em> of the (generated) data belonging to the same data distribution as the original data.</p>
+
+<p>To train our neural network, we define the loss function (L) as the objective function’s negative. So a high value for p_θ(x₀), means low loss and vice versa.</p>
+
+\[p_{\theta}(x_{0}) := \int p_{\theta}(x_{0:T})dx_{1:T} \qquad \text{(12)}\]
+
+\[L = -\log(p_{\theta}(x_{0})) \qquad \text{(13)}\]
+
+<p>However, this is intractable because we need to integrate over a very high dimensional (pixel) space for continuous values over T timesteps. Instead, take inspiration from VAEs and find a new, tractable training objective using a variational lower bound (VLB), also known as <em>Evidence lower bound</em> (ELBO). We have :</p>
+
+\[\mathbb{E}[-\log p_{\theta}(x_{0})] \leq \mathbb{E}_{q} \left[ -\log \frac{p_{\theta}(x_{0:T})}{q(x_{1:T} | x_{0})} \right] = \mathbb{E}_{q} \left[ -\log p(X_{T}) - \sum_{t \geq 1} \log \frac{p_{\theta}(x_{t-1} | x_{t})}{q(x_{t} | x_{t-1})} \right] =: L \qquad \text{(14)}\]
+
+<p>After some simplification, we arrive at this final \(L_{vlb}\) - Variational Lower Bound loss term:</p>
+
+\[\mathbb{E}_{q} \left[ D_{KL}(q(x_{T}|x_{0}) \parallel p(x_{T})) \bigg\rvert_{L_{T}} + \sum_{t &gt; 1} D_{KL}(q(x_{t-1}|x_{t}, x_{0}) \parallel p_{\theta}(x_{t-1}|x_{t})) \bigg\rvert_{L_{t-1}} - \log p_{\theta}(x_{0}|x_{1}) \bigg\rvert_{L_{0}} \right] \qquad \text{(15)}\]
+
+<p>We can break the above \(L_{vlb}\) loss term into individual timesteps as follows:</p>
+
+\[L_{vlb} := L_{0} + L_{1} + \cdots + L_{T-1} + L_{T} \qquad \text{(16)}\]
+
+\[L_{0} := - \log p_{\theta}(x_{0}|x_{1}) \qquad \text{(17)}\]
+
+\[L_{t-1} := D_{KL}(q(x_{t-1}|x_{t}, x_{0}) \parallel p_{\theta}(x_{t-1}|x_{t})) \qquad \text{(18)}\]
+
+\[L_{T} := D_{KL}(q(x_{T}|x_{0}) \parallel p(x_{T})) \qquad \text{(19)}\]
+
+<p>The terms ignored are:</p>
+
+<ol>
+  <li><strong>L₀</strong> – Because the original authors got better results without this.</li>
+  <li><strong>Lₜ</strong> – This is the <em>“KL divergence”</em> between the distribution of the final latent in the forward process and the first latent in the reverse process. Because there are no neural network parameters we can’t do anything with it so we just ignore from optimization.</li>
+</ol>
+
+<p>So <strong>Lₜ₋₁</strong> is the only loss term left which is a KL divergence between the <em>“posterior”</em> of the forward process, and the parameterized reverse diffusion process. Both terms are gaussian distributions as well.</p>
+
+\[L_{vlb} := L_{t-1} := D_{KL}(q(x_{t-1}|x_{t}, x_{0}) \parallel p_{\theta}(x_{t-1}|x_{t})) \qquad \text{(20)}\]
+
+<table>
+  <tbody>
+    <tr>
+      <td>The term q(xₜ₋₁</td>
+      <td>xₜ, x₀) is referred to as <em>“forward process posterior distribution.”</em></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>During training, our DL model learns to approximate the parameters of this posterior in order to minimize the KL divergence.</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/diffusion_training-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/diffusion_training-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/diffusion_training-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/diffusion_training.gif" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Figure 4: Stochastic sampling process (noisy images on top, predicted images on bottom)</figcaption>
+        </figure>
+    </div>
+</div>
+
+<h2 id="equivariant-diffusion-models-edm-for-3d-molecule-generation">Equivariant Diffusion Models (EDM) for 3D molecule generation</h2>
+
+<p>We will specifically focus on an E(n) equivariant diffusion model presented by the EDM paper, 
+which specialized in 3D molecular generation <d-cite key="hoogeboom2022equivariant"></d-cite>. The authors used a DDPM-based diffusion model with an EGNN backbone 
+for predicting both continuous (atom coordinates) and categorical features (atom types).</p>
+
+<p>As we have hinted earlier in the EGNN section, molecules are naturally equivariant to E(3) rotations and translation 
+while being easily represented with a graph. By E(3) we refer to the Euclidean group in three dimensions, which includes all transformations (rotations, translations, and reflections) that preserve Euclidean distances in three-dimensional space.
+ The categorical atomic properties are already invariant to E(3) 
+transformations, hence they can be generated with a regular diffusion. For the generated atom positions however, 
+we need to specifically ensure this equivariance to rotations and translations throughout the diffusion process.</p>
+
+<h3 id="how-to-achieve-equivariance-during-diffusion">How to achieve equivariance during diffusion?</h3>
+
+<p><strong>Rotations</strong></p>
+
+<p>Being equivariant to rotations, effectively meant that we want rotations applied at any given time step $t$ 
+in the diffusion process to not have an effect on the likelihood of generating a corresponding rotated sample at the 
+next time step $t+1$. In other words, if the best prediction is to move position of each atom $a_i$ in a certain 
+diretion $\mathbf{v}_i$, after we rotate the whole molecule by some arbitrary rotation matrix $\mathbf{R}$, the 
+equivariantly rotated predictions $\mathbf{R}\mathbf{v}_i$ should still be the best one to pick.</p>
+
+<p>Formally, we say that for any orthogonal rotation matrix $\mathbf{R}$ the following must hold:</p>
+
+\[p(y|x) = p(\mathbf{R}y|\mathbf{R}x) \qquad \text{(21)}\]
+
+<p>To uphold this property throughout the diffusion process, the Markov chain transition probability distributions at every 
+time step $t$ must be roto-invariant, otherwise rotations would alter the likelihood, breaking this desired equivariance property.</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/roto_symetry_gaus-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/roto_symetry_gaus-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/roto_symetry_gaus-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/roto_symetry_gaus.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Diffusion in nature</figcaption>
+        </figure>
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/roto_symetry_donut-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/roto_symetry_donut-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/roto_symetry_donut-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/roto_symetry_donut.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Diffusion in model</figcaption>
+        </figure>
+    </div>
+</div>
+<div class="row">
+    <div class="col text-center mt-3">
+        <p>Figure 5: Examples of 2D roto-invariant distributions</p>
+    </div>
+</div>
+
+<style>
+    .custom-figure .custom-image {
+        height: 250px; /* Set a fixed height for both images */
+        width: auto; /* Maintain aspect ratio and adjust width accordingly */
+        max-width: 100%; /* Ensure the image doesn't exceed the container width */
+    }
+</style>
+
+<p>As the EDM authors point out, an invariant distribution composed with an equivariant invertible function results in an
+invariant distribution <d-cite key="kohler2020equivariant"></d-cite>. They further point out that if $x \sim p(x)$ is invariant to a group, and the transition probabilities
+of a Markov chain $y \sim p(y|x)$ are equivariant, then the marginal distribution of $y$ at any time step $t$ is also invariant
+to that group <d-cite key="xu2022geodiff"></d-cite>.</p>
+
+<p>In the case of EDM, the underlying EGNN ensures equivariance while the initial sampling distribution
+can easily be constrained to something roto-invariant, such as a simple mean zero Gaussian with diagonal
+covariance matrix seen in Figure 5 (left).</p>
+
+<p><strong>Translations</strong></p>
+
+<p>It has been shown, that it is impossible to have non-zero distributions invariant to translations <d-cite key="satorras2021en"></d-cite>.
+Intuitively, the translation invariance property means that any point $\mathbf{x}$ results in the same assigned $p(\mathbf{x})$,
+leading to a uniform distribution, which, if stretched over an unbounded space, would be approaching zero-valued probabilities
+thus not integrating to one.</p>
+
+<p>The EDM authors bypass this with a clever trick of always re-centering the generated samples to have center of gravity at
+$\mathbf{0}$ and further show that these $\mathbf{0}$-centered distributions lie on a linear subspace that can reliably be used 
+for equivariant diffusion <d-cite key="hoogeboom2022equivariant"></d-cite><d-cite key="xu2022geodiff"></d-cite>.</p>
+
+<p>We hypothesize that, intuitively, moving a coordinate from e.g. 5 to 6 on any given axis is the same as moving from 
+8 to 9. But EDM predicts the actual atom positions, not a relative change, hence the objective needs to adjusted. 
+By constraining the model to this “subspace” of options where the center of the molecule is always at $\mathbf{0}$, 
+the absolute positions are effectively turned into relative ones w.r.t. to the center of the molecule, hence the model 
+can now learn relationships that do not depend on the absolute position of the whole molecule in 3D space.</p>
+
+<h3 id="training-the-edm">Training the EDM</h3>
+
+<p>As described in the DDPM section and following other modern diffusion models, an EGNN is trained in the standard 
+diffusion framework to predict the noise at each time step of the reverse process, which is then used to iteratively 
+reconstruct samples on the data distribution by adding signal to pure noise sampled from the Gaussian at time $T$. 
+With the caveat that the predicted noise must be calibrated to have center of gravity at $\mathbf{0}$ to ensure 
+equivariance as we have described earlier. It is worth explicitly noting that the noise added during the forward 
+diffusion process must also be equivariant, hence it is sampled from a $\mathbf{0}$-mean Gaussian distribution with 
+a diagonal covariance matrix.</p>
+
+<p>Using the KL divergence loss term introduced in DDPM with the EDM model parametrization simplifies the loss function to:</p>
+
+\[\mathcal{L}_t = \mathbb{E}_{\epsilon_t \sim \mathcal{N}_{x_h}(0, \mathbf{I})} \left[ \frac{1}{2} w(t) \| \epsilon_t - \hat{\epsilon}_t \|^2 \right] \qquad \text{(22)}\]
+
+<p>where 
+$( w(t) = \left(1 - \frac{\text{SNR}(t-1)}{\text{SNR}(t)}\right) )$ and $( \hat{\epsilon}_t = \phi(z_t, t) )$.</p>
+
+<p>However, the EDM authors found that the model had better empirical performance with a constant $w(t) = 1$, disregarding the
+signal-to-noise ration (SNR). Thus, the loss term effectively simplifies to a MSE.</p>
+
+<p>Since coordinates and categorical features are on different scales, the EDM authors also found they achieved better performance when scaling the inputs before prediction and then rescaling them back after.</p>
+
+<h3 id="consistency-models">Consistency Models</h3>
+
+<p>Although diffusion Models have significantly advanced the fields of image, audio, and video generation, but they depend on an iterative de-noising process to generate samples, which can be very slow <d-cite key="song2023consistency"></d-cite>. To generate good samples, a lot of steps are often required (sometimes in the 1000s). This issue is exacerbated when dealing with high dimensional data where all operations are even more computationally expensive. As hinted in the introduction, we look at Consistency models in our work to bypass this bottleneck.</p>
+
+<p>This is where Consistency Models really shine. This new family of models reduces the number of steps during de-noising up to just a single step generation, significantly speeding up this process, while allowing for a controlled trade-off between speed and sample quality.</p>
+
+<h3 id="how-does-it-work">How does it work?</h3>
+
+<p>To understand consistency models, one must look at diffusion from a slightly different perspective than it’s usually presented.
+Consider the transfer of mass under the data probability distribution in time.</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/bimodal_to_gaussian_plot-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/bimodal_to_gaussian_plot-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/bimodal_to_gaussian_plot-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/bimodal_to_gaussian_plot.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Figure 6: Illustration of a bimodal distribution evolving to a Gaussian over time</figcaption>
+        </figure>
+    </div>
+</div>
+
+<p>Such process are often well described with a differential equation. In the next sections we look closely at the work of Yang Song <d-cite key="song2023consistency"></d-cite><d-cite key="song2021score"></d-cite> and others to examine how they leverage the existence of such an Ordinary Differential Equation (ODE) to generate strong
+samples much faster.</p>
+
+<p><br /></p>
+
+<p><strong>Modelling the noising process as an SDE</strong></p>
+
+<p>Song et al. <d-cite key="song2021score"></d-cite> have shown that the noising process in diffusion can be described with a Stochastic Differential Equation (SDE)
+transforming the data distribution $p_{\text{data}}(\mathbf{x})$:</p>
+
+\[d\mathbf{x}_t = \mathbf{\mu}(\mathbf{x}_t, t) dt + \sigma(t) d\mathbf{w}_t \qquad \text{(23)}\]
+
+<p>Where $t$ is the time-step, $\mathbf{\mu}$ is the drift coefficient, $\sigma$ is the diffusion coefficient,
+and $\mathbf{w}_t$ is the stochastic component denoting standard Brownian motion. This stochastic component effectively
+represents the iterative adding of noise to the data in the forward diffusion process and dictates the shape of the final
+distribution at time $T$.</p>
+
+<p>Typically, this SDE is designed such that $p_T(\mathbf{x})$ at the final time-step $T$ is close to a tractable Gaussian.</p>
+
+<p><br /></p>
+
+<p><strong>Existence of the PF ODE</strong></p>
+
+<p>This SDE has a remarkable property, that a special ODE exists, whose trajectories sampled at $t$ are distributed
+according to $p_t(\mathbf{x})$ <d-cite key="song2023consistency"></d-cite>:</p>
+
+\[d\mathbf{x}_t = \left[ \mathbf{\mu}(\mathbf{x}_t, t) - \frac{1}{2} \sigma(t)^2 \nabla \log p_t(\mathbf{x}_t) \right] dt \qquad \text{(24)}\]
+
+<p>This ODE is dubbed the Probability Flow (PF) ODE by Song et al. <d-cite key="song2023consistency"></d-cite> and corresponds to the different view of diffusion
+manipulating probability mass over time we hinted at in the beginning of the section.</p>
+
+<p>A score model $s_\phi(\mathbf{x}, t)$ can be trained to approximate $\nabla log p_t(\mathbf{x})$ via score matching <d-cite key="song2023consistency"></d-cite>.
+ <!-- and following Karras et al. <d-cite key="gilmer2017neural"></d-cite> it is -->
+Since we know the parametrization of the final distribution $p_T(\mathbf{x})$ to be a standard Gaussian parametrized with $\mathbf{\mu}=0$ and $\sigma(t) = \sqrt{2t}$, this score model can be plugged into the equation (24) and the expression reduces itself to an empirical estimate of the PF ODE:</p>
+
+\[\frac{dx_t}{dt} = -ts\phi(\mathbf{x}_t, t) \qquad \text{(25)}\]
+
+<p>With $\mathbf{\hat{x}}_T$ sampled from the specified Gaussian at time $T$, the PF ODE can be solved backwards in time to obtain
+a solution trajectory mapping all points along the way to the initial data distribution at time $\epsilon$.</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/consistency_models_pf_ode-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/consistency_models_pf_ode-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/consistency_models_pf_ode-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/consistency_models_pf_ode.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Figure 7: Solution trajectories of the PF ODE. <d-cite key="dosovitskiy2020image"></d-cite></figcaption>
+        </figure>
+    </div>
+</div>
+
+<p><br /></p>
+
+<p><strong>Solving the PF ODE</strong></p>
+
+<p>In Figure 7 the “Noise” distribution corresponds to $p_T(\mathbf{x})$ and the “Data” distribution is treated as one at $t=\epsilon$
+very close to time zero. For numerical stability we want to avoid explicitly having $t=0$ <d-cite key="karras2022elucidating"></d-cite>.</p>
+
+<p>Following Karras et al. <d-cite key="karras2022elucidating"></d-cite>, the time horizon $[\epsilon, T]$ is discretized into $N-1$ sub-intervals with
+boundaries $t_1 = \epsilon &lt; t_2 &lt; \cdots &lt; t_N = T$. This improves performance and stability over treating time as a
+continuous variable.</p>
+
+<p>In practice, the following formula is most often used to determine these boundaries <d-cite key="karras2022elucidating"></d-cite>:</p>
+
+\[t_i = \left(\epsilon^{1/\rho} + \frac{i - 1}{N - 1}(T^{1/\rho} - \epsilon^{1/\rho})\right)^\rho \qquad \text{(26)}\]
+
+<p>, where $\rho = 7$.</p>
+
+<p>Given any of-the-shelf ODE solver (e.g. Euler) and a trained score model $s_\phi(\mathbf{x}, t)$, we can solve this PF ODE.</p>
+
+<p>As shown before, the score model is needed to predict the change in signal over time $\frac{dx_t}{dt}$, i.e. a
+generalization of what we referred to as “predicting noise to next time step” earlier.</p>
+
+<p>A solution trajectory, denoted $\{\mathbf{x}_t\}$, is then given as a finite set of samples $\mathbf{x}_t$ for every
+discretized time-step $t$ between $\epsilon$ and $T$.</p>
+
+<p><br /></p>
+
+<p><strong>Consistency Function</strong></p>
+
+<p>Given a solution trajectory \({\mathbf{x}_t}\), we define the <em>consistency function</em> as:</p>
+
+<p align="center">
+$f:$ $(\mathbf{x}_t, t)$ $\to$ $\mathbf{x}_{\epsilon}$ 
+</p>
+
+<p>In other words, a consistency function always outputs a corresponding datapoint at time $\epsilon$, i.e. very close to
+the original data distribution for every pair ($\mathbf{x}_t$, t).</p>
+
+<p>Importantly, this function has the property of <em>self-consistency</em>: i.e. its outputs are consistent for arbitrary pairs of
+$(x_t, t)$ that lie on the same PF ODE trajectory. Hence, we have $f(x_t, t) = f(x_{t’}, t’)$ for all $t, t’ \in [\epsilon, T]$.</p>
+
+<p>The goal of a <em>consistency model</em>, denoted by $f_\theta$, is to estimate this consistency function $f$ from data by
+being enforced with this self-consistency property during training.</p>
+
+<p><br /></p>
+
+<p><strong>Boundary Condition &amp; Function Parametrization</strong></p>
+
+<p>For any consistency function $f(\cdot, \cdot)$, we must have $f(x_\epsilon, \epsilon) = x_\epsilon$, i.e., $f(\cdot, 
+\epsilon)$ being an identity function. This constraint is called the <em>boundary condition</em> <d-cite key="song2023consistency"></d-cite>.</p>
+
+<p>The boundary condition has to be met by all consistency models, as we have hinted before that much of the training relies
+on the assumption that $p_\epsilon$ is borderline identical to $p_0$. However, it is also a big architectural
+constraint on consistency models.</p>
+
+<p>For consistency models based on deep neural networks, there are two ways to implement this boundary condition almost
+for free <d-cite key="song2023consistency"></d-cite>. Suppose we have a free-form deep neural network $F_\theta (x, t)$ whose output has the same dimensionality
+as $x$.</p>
+
+<p>1.) One way is to simply parameterize the consistency model as:</p>
+
+\[f_\theta (x, t) =
+\begin{cases}
+x &amp; t = \epsilon \\
+F_\theta (x, t) &amp; t \in (\epsilon, T]
+\end{cases} \\
+\qquad \text{(27)}\]
+
+<p>2.) Another method is to parameterize the consistency model using skip connections, that is:</p>
+
+\[f_\theta (x, t) = c_{\text{skip}} (t) x + c_{\text{out}} (t) F_\theta (x, t) \qquad \text{(28)}\]
+
+<p>where $c_{\text{skip}} (t)$ and $c_{\text{out}} (t)$ are differentiable functions such that $c_{\text{skip}} (\epsilon) = 1$,
+and $c_{\text{out}} (\epsilon) = 0$.</p>
+
+<p>This way, the consistency model is differentiable at $t = \epsilon$ if $F_\theta (x, t)$, $c_{\text{skip}} (t)$, $c_{\text{out}} (t)$
+are all differentiable, which is critical for training continuous-time consistency models.</p>
+
+<p>In our work, we utilize the latter methodology in order to satisfy the boundary condition.</p>
+
+<p><br /></p>
+
+<p><strong>Sampling</strong></p>
+
+<p>With a fully trained consistency model $f_\theta(\cdot, \cdot)$, we can generate new samples by simply sampling from the initial
+Gaussian $\hat{x_T}$ $\sim \mathcal{N}(0, T^2I)$ and propagating this through the consistency model to obtain
+samples on the data distribution $\hat{x_{\epsilon}}$ $= f_\theta(\hat{x_T}, T)$ with as little as one diffusion step.</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/consistency_on_molecules-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/consistency_on_molecules-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/consistency_on_molecules-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/consistency_on_molecules.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Figure 8: Visualization of PF ODE trajectories for molecule generation in 3D. <d-cite key="fan2023ecconf"></d-cite></figcaption>
+        </figure>
+    </div>
+</div>
+
+<h3 id="training-consistency-models">Training Consistency Models</h3>
+
+<p>Consistency models can either be trained by “distillation” from a pre-trained diffusion model, or in “isolation” as a standalone generative model from scratch. In the context of our work, we focused only on the latter because the distillation approach has a hard requirement of using a pretrained score based diffusion. 
+In order to train in isolation we ned to leverage the following unbiased estimator:</p>
+
+\[\nabla \log p_t(x_t) = - \mathbb{E} \left[ \frac{x_t - x}{t^2} \middle| x_t \right] \qquad \text{(29)}\]
+
+<p>where $x \sim p_\text{data}$ and $x_t \sim \mathcal{N}(x; t^2 I)$.</p>
+
+<p>That is, given $x$ and $x_t$, we can estimate $\nabla \log p_t(x_t)$ with $-(x_t - x) / t^2$.
+This unbiased estimate suffices to replace the pre-trained diffusion model in consistency distillation
+when using the Euler ODE solver in the limit of $N \to \infty$ <d-cite key="song2023consistency"></d-cite>.</p>
+
+<p>Song et al. <d-cite key="song2023consistency"></d-cite> justify this with a further theorem in their paper and show that the consistency training objective (CT loss)
+can then be defined as:</p>
+
+<p align="center">
+$\mathcal{L}_{CT}^N (\theta, \theta^-)$ = $\mathbb{E}[\lambda(t_n)d(f_\theta(x + t_{n+1} \mathbf{z}, t_{n+1}), f_{\theta^-}(x + t_n \mathbf{z}, t_n))]$ $\qquad \text{(30)}$
+</p>
+
+<p>where $\mathbf{z} \sim \mathcal{N}(0, I)$.</p>
+
+<p>Crucially, $\mathcal{L}(\theta, \theta^-)$ only depends on the online network $f_\theta$, and the target network
+$f_{\theta^-}$, while being completely agnostic to diffusion model parameters $\phi$.</p>
+
+<!---
+### Visualization
+
+<p align="center">
+<img src="readme_material//consistency_mnist_tiny_example.png" alt="Consistency Graph 2" width="800"/>
+</p>
+<p align="center">
+Figure #(?): Consistency model example for the MNIST dataset.
+</p>
+
+(TBA - visualizations of the molecules if possible)
+
+
+<img src="readme_material//consistency_mnist_dataset.png" alt="Consistency Graph 2" width="800"/>
+*Figure #: Consistency model working for the MNIST dataset.*
+
+
+We conducted the expirement of the consistency model working for the MNIST dataset. During training we sampled after
+10 epochs and visualized the results. In figure # we can see the MNIST digits in different epochs. What's really
+noteworthy is that those samples were generated in one step and not by doing the denoising process what takes a
+very long time and a high number of steps, usually 1000-4000, which saves a lot of time and computation power
+during sampling.
+
+
+(TBA - maybe put back some talking about the images idk yet [Martin])
+-->
+
+<h3 id="edm-consistency-model-results">EDM Consistency Model Results</h3>
+
+<p>We were able to successfully train EDM as a consistency model in isolation. We achieved nearly identical training
+loss curves, both in magnitude of the NLL and convergence rate as shown in figure 9:</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_train_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_train_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_train_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_train_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Training loss curves for original EDM</figcaption>
+        </figure>
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/results_consistency_train_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/results_consistency_train_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/results_consistency_train_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/results_consistency_train_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Training loss curves for consistency model EDM</figcaption>
+        </figure>
+    </div>
+</div>
+<div class="row">
+    <div class="col text-center mt-3">
+        <p>Figure 9: Training loss curves for original EDM (left), and consistency model EDM (right)</p>
+    </div>
+</div>
+
+<style>
+    .custom-figure .custom-image {
+        height: 350px; /* Set a fixed height for both images */
+        width: auto; /* Maintain aspect ratio and adjust width accordingly */
+        max-width: 100%; /* Ensure the image doesn't exceed the container width */
+    }
+</style>
+
+<p>For validation and testing, we compared samples from an EMA model against the corresponding ground truth sample,
+since consistency models are trained to produce samples directly on the data distribution. 
+We achieved similar convergence rates for both val and test losses but with a different magnitude due to the 
+changed objective as show on figure 10:</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_val_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_val_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_val_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_val_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Val loss curves for original EDM</figcaption>
+        </figure>
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/results_consistency_val_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/results_consistency_val_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/results_consistency_val_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/results_consistency_val_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Val loss curves for consistency model EDM</figcaption>
+        </figure>
+    </div>
+</div>
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_test_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_test_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_test_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/results_edm_orig_test_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Test loss curves for original EDM</figcaption>
+        </figure>
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/results_consistency_test_loss-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/results_consistency_test_loss-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/results_consistency_test_loss-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/results_consistency_test_loss.png" class="img-fluid rounded z-depth-1 custom-image" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Test loss curves for consistency model EDM</figcaption>
+        </figure>
+    </div>
+</div>
+<div class="row">
+    <div class="col text-center mt-3">
+        <p>Figure 10: Val (top) and Test (bottom) loss curves for original EDM (left), and consistency model EDM (right)</p>
+    </div>
+</div>
+
+<style>
+    .custom-figure .custom-image {
+        height: 350px; /* Set a fixed height for all images */
+        width: auto; /* Maintain aspect ratio and adjust width accordingly */
+        max-width: 100%; /* Ensure the image doesn't exceed the container width */
+    }
+</style>
+
+<p>These results were obtained using the same EGNN back-bone, batch-size, 
+learning rate, and other relevant hyperparameters, only differing in the number of epochs completed.
+However, given the displayed loss curves, we have little reason to believe that training the consistency model
+for longer would be beneficial.</p>
+
+<p>Using single-step sampling with consistency models, we were only able to reliably achieve around 15% atom stability in
+the best case scenario with a large batch size show is figure 11. This low atom stability number could be due to the architecture and the way one step generation works in consistency models. We leave as a future expirement to try different values of sampling other than one step. We were not successful in generating any stable molecules using
+the consistency model.</p>
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure>
+            
+
+<figure>
+  <picture>
+    <!-- Auto scaling with imagemagick -->
+    <!--
+      See https://www.debugbear.com/blog/responsive-images#w-descriptors-and-the-sizes-attribute and
+      https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images for info on defining 'sizes' for responsive images
+    -->
+    
+      <source class="responsive-img-srcset" srcset="/assets/img/2024-06-30-equivariant_consistency/results_consistency_atom_stability-480.webp 480w,/assets/img/2024-06-30-equivariant_consistency/results_consistency_atom_stability-800.webp 800w,/assets/img/2024-06-30-equivariant_consistency/results_consistency_atom_stability-1400.webp 1400w," sizes="95vw" type="image/webp" />
+    
+    <img src="/assets/img/2024-06-30-equivariant_consistency/results_consistency_atom_stability.png" class="img-fluid rounded z-depth-1" width="100%" height="auto" data-zoomable="" loading="eager" onerror="this.onerror=null; $('.responsive-img-srcset').remove();" />
+  </picture>
+
+  
+</figure>
+
+            <figcaption class="text-center mt-2">Figure 11: Best results for atom stability metric using single-step sampling with consistency models trained on batch_size = 1024 for improved stability.</figcaption>
+        </figure>
+    </div>
+</div>
+
+<p>The controlled trade-off between speed and sample quality should be possible with multi-step sampling,
+however, all attempts to make multi-step sampling work resulted in decreased atom stability. We further 
+discuss the set-up and hypothesise why this did not work in the next section.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>In conclusion, we largely succeeded in reimplementing the EDM paper in JAX, leading to faster runtime, but 
+un-competitive results. Similarly, we implemented and trained EDM as a consistency model, allowing us to 
+generate new molecules much in a single step, however, we did not manage to make multi-step generation work. 
+As such, the consistency model also did not achieve competitive results.</p>
+
+<p>Although the results are not close to state of the art, we are confident that these methods can achieve better performance 
+with more development time, and in their current state, can serve as a good proof of concept. A natural direction
+for future research is to continue investigating the poor performance of the current implementation and fix the
+underlying issues and suspected bugs to get competitive results.</p>]]></content><author><name>Martin Sedlacek</name></author><category term="molecule" /><category term="generation," /><category term="consistency" /><category term="models" /><summary type="html"><![CDATA[Discussing Equivariant molecule generation using Consistency Models.]]></summary></entry><entry><title type="html">a distill-style blog post</title><link href="http://localhost:4000/blog/2021/distill/" rel="alternate" type="text/html" title="a distill-style blog post" /><published>2021-05-22T00:00:00+02:00</published><updated>2021-05-22T00:00:00+02:00</updated><id>http://localhost:4000/blog/2021/distill</id><content type="html" xml:base="http://localhost:4000/blog/2021/distill/"><![CDATA[<h2 id="equations">Equations</h2>
 
 <p>This theme supports rendering beautiful math in inline and display modes using <a href="https://www.mathjax.org/">MathJax 3</a> engine.
 You just need to surround your math expression with <code class="language-plaintext highlighter-rouge">$$</code>, like <code class="language-plaintext highlighter-rouge">$$ E = mc^2 $$</code>.
@@ -144,6 +1119,7 @@ It does not interrupt the normal flow of <code class="language-plaintext highlig
 </div>
 
 <hr />
+
 <h2 id="images">Images</h2>
 
 <p>This is an example post with image galleries.</p>
