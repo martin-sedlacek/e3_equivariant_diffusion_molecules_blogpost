@@ -52,29 +52,31 @@ incorporating an Equivariant Graph Neural Network (EGNN) architecture, effective
 priors about the symmetries in 3D space. This work demonstrated strong improvement over other (non-diffusion) generative 
 methods for molecules at the time, and inspired many subsequent works <d-cite key="anstine2023generative"></d-cite><d-cite key="corso2023diffdock"></d-cite><d-cite key="igashov2024equivariant"></d-cite><d-cite key="xu2023geometric"></d-cite>. 
 
-Traditional diffusion is however, bottle-necked by the sequential denoising process, which can be slow and computationally expensive <d-cite key="song2023consistency"></d-cite>.
+Traditional diffusion is unfortunately bottle-necked by the sequential denoising process, which can be slow and computationally expensive <d-cite key="song2023consistency"></d-cite>.
 Hence, we also aim to demonstrate that an EDM can be trained significantly faster, uncapping its potential, with the 
 following two extensions:
-
+<
 1. Training EDM as a Consistency Model <d-cite key="song2023consistency"></d-cite>
 2. Faster implementation of the EDM with JAX <d-cite key="bradbury2018jax"></d-cite>
 
-Consistency models enable the model to generate samples in a single step, which can be much faster than the sequential 
-sampling in diffusion models. In conjunction with this, we can make the model even faster by implementing the model 
-using the JAX framework. JAX has been shown to improve the speed of certain diffusion models by large amounts, with 
-one study finding a 5x speed improvement in a comparable diffusion model <d-cite key="kang2024efficient"></d-cite>. JAX tends to improve the performance 
-of models that require regular, repetitive computations such as diffusion models. 
+Consistency models enable generating samples down to a single step, while the JAX framework has been shown to improve performance 
+of models that require regular, repetitive computations such as diffusion models. It also demonstrated up to 5x improvement 
+on a comparable diffusion model <d-cite key="kang2024efficient"></d-cite>.
 
-This increase in efficiency serves several purposes. Most importantly, increased performance enables us to use larger
-models with the same amount of compute. Many previous works across various domains have shown that scaling model
-architectures to more parameters can significantly improve performance <d-cite key="dosovitskiy2020image"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="krizhevsky2012imagenet"></d-cite> in domains including language <d-cite key="brown2020language"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="touvron2023llama"></d-cite>
-as well as images and video <d-cite key="liu2024sora"></d-cite><d-cite key="ramesh2022hierarchical"></d-cite><d-cite key="rombach2022high"></d-cite><d-cite key="saharia2022photorealistic"></d-cite>. Similar scaling effect was observed in Graph Neural Networks (GNN) <d-cite key="sriram2022towards"></d-cite>.
-We hope that, by improving the speed of our models, we can enable the use of larger GNN backbones without requiring
-more expensive compute. Even without compute constraints, increasing speed hastens development and decreases
-the carbon footprint overall.
+This increase in efficiency can serve several purposes. Most importantly, increased performance enables the use of larger
+models without increased need for compute. Many previous works across various domains have shown that scaling model
+architectures to more parameters can significantly improve performance <d-cite key="dosovitskiy2020image"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="krizhevsky2012imagenet"></d-cite> 
+in domains including language <d-cite key="brown2020language"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="touvron2023llama"></d-cite>
+as well as images and video <d-cite key="liu2024sora"></d-cite><d-cite key="ramesh2022hierarchical"></d-cite><d-cite key="rombach2022high"></d-cite><d-cite key="saharia2022photorealistic"></d-cite>. 
+A similar scaling effect was also observed in Graph Neural Networks (GNN) <d-cite key="sriram2022towards"></d-cite>.
+We hope that, by improving the inference and training speed of these models, we can enable the use of larger GNN backbones 
+without requiring more expensive compute. As a side effect, increasing the model speed also hastens development and decreases
+the overall carbon footprint.
 
-We also note that these performance improvements are, in theory at least, not exclusive to EDM or GNNs. Many other ML 
-models might be improved through a JAX reimplementation and many diffusion models can be trained as a consistency model.
+<!--- We also note that these performance improvements are, in theory at least, not exclusive to EDM or GNNs. Many other ML 
+models might be improved through a JAX reimplementation and many diffusion models can be trained as a consistency model. --->
+
+## Preliminary Concepts
 
 #### Groups and Equivariance for molecules
 
