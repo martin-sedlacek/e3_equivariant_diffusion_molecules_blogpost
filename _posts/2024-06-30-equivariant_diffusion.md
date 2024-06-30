@@ -51,12 +51,14 @@ computationally expensive <d-cite key="song2023consistency"></d-cite>. Hence, we
 and aim to demonstrate that an EDM can be trained significantly faster in this framework, enabling it to generate 
 samples with as little as a single step.
 
+<!---
 Using Consistency Models can be a step towards enabling much larger GNN backbones, eventually observing 
 similar scaling effects as other domains including language <d-cite key="brown2020language"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="touvron2023llama"></d-cite> 
 or image and video generation <d-cite key="liu2024sora"></d-cite><d-cite key="ramesh2022hierarchical"></d-cite><d-cite key="rombach2022high"></d-cite><d-cite key="saharia2022photorealistic"></d-cite>.
 Such improvement has been demonstrated in training Graph Neural Networks (GNN) <d-cite key="sriram2022towards"></d-cite>,
 and scaling model parameters to take advantage of increasingly larger compute availability, is generally known to improve 
 model performance <d-cite key="dosovitskiy2020image"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="krizhevsky2012imagenet"></d-cite>.
+--->
 
 <!--- 260 words --->
 
@@ -103,8 +105,8 @@ Molecules can very naturally be represented with graph structures, where the nod
 The features of each atom, such as its element type or charge can be encoded into an embedding $\mathbf{h}_i \in \mathbb{R}^d$ 
 alongside with its 3D position $\mathbf{x}_i \in \mathbb{R}^3$.
 
-To learn and operate on such structured inputs, Graph Neural Networks (GNNs) (TBA - citation) have been developed, 
-operating with the message passing paradigm (TBA - citation). This architecture consists of several layers, 
+To learn and operate on such structured inputs, Graph Neural Networks (GNNs) <d-cite key="zhou2021graphneuralnetworksreview"></d-cite> 
+have been developed, operating with the message passing paradigm <d-cite key="gilmer2017neuralmessagepassingquantum"></d-cite>. This architecture consists of several layers, 
 each of which updates the representation of each node, using the information in nearby nodes.
 
 <style>
@@ -334,7 +336,7 @@ sample on the original data distribution."**
 
 During training, our model learns to approximate the parameters of a posterior distributions at the next time
 step by minimizing the KL divergence between this estimate and the ground truth, which is equivalent
-to minimizing the negative log likelihood (TBA - reference).
+objective to minimizing the negative log likelihood.
 
 $$
 \begin{align}
@@ -559,11 +561,22 @@ $f_{\theta^-}$, while being completely agnostic to diffusion model parameters $\
 
 ## Experiments
 
-We replicate the original EDM experimental set-up and evaluate on the QM-9 dataset (TBA - citation). Due to 
-computational constraints and the demonstrational nature of this blogpost, we only trained all models for 
-130 epochs with default hyperparameter settings given by the original EDM implementation (TBA - citation).
-While the default EDM is capable of achieving results much better than reported below in table TBA with more training, 
-it still comfortably outperforms all consistency model variations on all metrics using equal amounts of compute.
+We replicate the original EDM experimental set-up and evaluate on the QM-9 dataset <d-cite key="ramakrishnan2014quantum"></d-cite>. 
+Due to computational constraints and the demonstrational nature of this blogpost, we only trained all models for 
+130 epochs with default hyperparameter settings given by the original EDM implementation <d-cite key="hoogeboom2022equivariant"></d-cite>.
+
+| **Model / Sampling Time (seconds)** | **Mean** | **STD** | 
+|-------------------------------------|----------|---------|
+| Default EDM                         | 0.6160   | 0.11500 | 
+| Consistency Model (single step)     | 0.0252   | 0.00488 |
+
+<div class="caption" style="text-align: center;">
+    Table 1: EDM and Consistency Model inference speed
+</div>
+
+As expected, we observe in table 1., that the consistency model in single-step mode is significantly faster than the EDM, 
+with up to a _24x speed-up_ on average. Unfortunately, the actual performance is significantly deteriorated as seen below
+in table 2.
 
 | **Model / Metric**              | **Training NLL** | **Validation NLL** | **Best Cross-Validated Test NLL** | **Best Atom Stability** | **Best Molecule Stability** |
 |---------------------------------|------------------|--------------------|-----------------------------------|-------------------------|------------------------------|
@@ -572,7 +585,7 @@ it still comfortably outperforms all consistency model variations on all metrics
 | Consistency Model (multi-step)  | 2.484            | 166264             | 179003                            | 0.12                    | 0                            |
 
 <div class="caption" style="text-align: center;">
-    Table 1: EDM and Consistency Model results on QM-9 dataset
+    Table 2: EDM and Consistency Model results on QM-9 dataset
 </div>
 
 We observed that the consistency models converge on the training set with similar speed as the regular EDM, even
@@ -584,21 +597,20 @@ single-step sampling mode.
 To rectify this, we attempted to use multi-step sampling, which  should in theory allow us to replicate results 
 close to the EDM, we observed no such improvement in our experiments. We tested multiple different amounts of steps 
 and report results for 100, which performed best overall. Notably, the multi-step sampling yield worse results 
-than the single-step sampling most of the time. This is a highly surprising result, and we suspect that either 
-of two things: 1.) there is a hidden bug in out implementation 2.) the high-level descriptions of multi-step 
-sampling in related works (TBA - citation) miss implementation details needed to successfully replicate a 
-similar improvement.
+than the single-step sampling most of the time is highly unexpected and requires further investigation.
 
-TBA - timing the molecule sampling vs EDM vs consistency
+While the default EDM with more training is capable of achieving results much better than we report in table 2, 
+it still comfortably outperforms all consistency model variations on all metrics using equal amounts of compute.
 
 ## Discussion
 
 Consistency models are able to reduce the number of steps during de-noising up to just a single step, significantly 
 speeding up the sampling process. We were able to successfully demonstrate this and train an EDM as a consistency 
-model in isolation, achieving nearly identical training loss with (TBA - X times faster sampling times). However, using the single-step only achieves 
-up to 19% atom stability in the best case scenario, compared with 87% for the default EDM. Using multi-step 
-sampling should in theory yield competitive results, but we observed no such improvement. 
+model in isolation, achieving nearly identical training loss with up to 24x faster sampling times. However, using 
+the single-step sampling only achieves up to 19% atom stability in best case scenario, compared with the default 
+EDM which consistently reaches 87% or much more with further training. 
 
+Using multi-step sampling should in theory yield competitive results, but we observed no such improvement. 
 Since it cannot be ruled out that this was caused by a bug in our multi-step sampling code, we hope to continue 
 investigating if the consistency model paradigm can reliably be used for molecule generation in the future
 and show more competitive results as previous works suggest is possible <d-cite key="fan2023ecconf"></d-cite>.
