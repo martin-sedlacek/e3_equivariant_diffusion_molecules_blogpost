@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-06-30T22:16:35+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-06-30T22:36:05+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
 </subtitle><entry><title type="html">Equivariant Diffusion for Molecule Generation in 3D using Consistency Models</title><link href="http://localhost:4000/blog/2024/equivariant_diffusion/" rel="alternate" type="text/html" title="Equivariant Diffusion for Molecule Generation in 3D using Consistency Models" /><published>2024-06-30T00:00:00+02:00</published><updated>2024-06-30T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/equivariant_diffusion</id><content type="html" xml:base="http://localhost:4000/blog/2024/equivariant_diffusion/"><![CDATA[<h2 id="introduction">Introduction</h2>
 
 <p>In this blog post, we introduce and discuss <a href="https://arxiv.org/abs/2203.17003">“Equivariant Diffusion for Molecule Generation in 3D”</a> <d-cite key="hoogeboom2022equivariant"></d-cite>, 
@@ -33,7 +33,9 @@ in ensuring that structure is preserved in the representation of a molecule unde
 
 <p>Formally, we say that a function $f$ is equivariant to the action of a group $G$ if:</p>
 
-\[T_g(f(x)) = f(S_g(x)) \qquad \text{(1)}\]
+\[\begin{align}
+T_g(f(x)) = f(S_g(x))
+\end{align}\]
 
 <p>for all $g \in G$, where $S_g,T_g$ are linear representations related to the group element $g$ <d-cite key="serre1977linear"></d-cite>.</p>
 
@@ -42,7 +44,9 @@ $T_g$ can be represented by a translation $t$ and an orthogonal matrix $R$ that 
 
 <p>A function $f$ is then equivariant to a rotation or reflection $R$ if:</p>
 
-\[Rf(x) = f(Rx) \qquad \text{(2)}\]
+\[\begin{align}
+Rf(x) = f(Rx)
+\end{align}\]
 
 <p>meaning transforming its input results in an equivalent transformation of its output. <d-cite key="hoogeboom2022equivariant"></d-cite></p>
 
@@ -110,22 +114,30 @@ the molecular generation task <d-cite key="verma2022modular"></d-cite>.</p>
 
 <p>The EGNN is built with <em>equivariant</em> graph convolution layers (EGCLs):</p>
 
-\[\mathbf{x}^{l+1},\mathbf{h}^{l+1}=EGCL[ \mathbf{x}^l, \mathbf{h}^l ] \qquad \text{(3)}\]
+\[\begin{align}
+\mathbf{x}^{l+1},\mathbf{h}^{l+1}=EGCL[ \mathbf{x}^l, \mathbf{h}^l ]
+\end{align}\]
 
 <p>An EGCL layer can be formally defined by:</p>
 
 <div align="center">
 
 $$
-\mathbf{m}_{ij} = \phi_e(\mathbf{h}_i^l, \mathbf{h}_j^l, d^2_{ij}) \qquad \text{(4)}
+\begin{align}
+\mathbf{m}_{ij} = \phi_e(\mathbf{h}_i^l, \mathbf{h}_j^l, d^2_{ij})
+\end{align}
 $$
 
 $$
-\mathbf{h}_i^{l+1} = \phi_h\left(\mathbf{h}_i^l, \sum_{j \neq i} \tilde{e}_{ij} \mathbf{m}_{ij}\right) \qquad \text{(5)}
+\begin{align}
+\mathbf{h}_i^{l+1} = \phi_h\left(\mathbf{h}_i^l, \sum_{j \neq i} \tilde{e}_{ij} \mathbf{m}_{ij}\right) 
+\end{align}
 $$
 
 $$
-\mathbf{x}_i^{l+1} = \mathbf{x}_i^l + \sum_{j \neq i} \frac{\mathbf{x}_i^l \mathbf{x}_j^l}{d_{ij} + 1} \phi_x(\mathbf{h}_i^l, \mathbf{h}_j^l, d^2_{ij}) \qquad \text{(6)}
+\begin{align}
+\mathbf{x}_i^{l+1} = \mathbf{x}_i^l + \sum_{j \neq i} \frac{\mathbf{x}_i^l \mathbf{x}_j^l}{d_{ij} + 1} \phi_x(\mathbf{h}_i^l, \mathbf{h}_j^l, d^2_{ij})
+\end{align}
 $$
 
 </div>
@@ -183,32 +195,36 @@ trained to learn a reverse process that reconstructs samples on the data distrib
 where transition at each time step $t$ adds Gaussian noise with a variance of $\beta_t \in (0,1)$:</p>
 
 \[\begin{align}
-q\left( x_t \mid x_{t-1} \right) := \mathcal{N}\left( x_t ; \sqrt{1-\beta_t} x_{t-1}, \beta_t \mathbf{I} \right) &amp; \qquad \text{(7)}
+q\left( x_t \mid x_{t-1} \right) := \mathcal{N}\left( x_t ; \sqrt{1-\beta_t} x_{t-1}, \beta_t \mathbf{I} \right) 
 \end{align}\]
 
 <p>The whole Markov process leading to time step $T$ is given as a chain of these transitions:</p>
 
 \[\begin{align}
-q\left( x_1, \ldots, x_T \mid x_0 \right) := \prod_{t=1}^T q \left( x_t \mid x_{t-1} \right) &amp; \qquad \text{(8)}
+q\left( x_1, \ldots, x_T \mid x_0 \right) := \prod_{t=1}^T q \left( x_t \mid x_{t-1} \right)
 \end{align}\]
 
 <p>The “reverse” process transitions are unknown and need to be approximated using a neural network parametrized by $\theta$:</p>
 
-\[p_\theta \left( x_{t-1} \mid x_t \right) := \mathcal{N} \left( x_{t-1} ; \mu_\theta \left( x_t, t \right), \Sigma_\theta \left( x_t, t \right) \right) \qquad \text{((9))}\]
+\[\begin{align}
+p_\theta \left( x_{t-1} \mid x_t \right) := \mathcal{N} \left( x_{t-1} ; \mu_\theta \left( x_t, t \right), \Sigma_\theta \left( x_t, t \right) \right)
+\end{align}\]
 
 <p>Because we know the dynamics of the forward process, the variance $\Sigma_\theta \left( x_t, t \right)$ at time $t$ is 
 known and can be fixed to $\beta_t \mathbf{I}$.</p>
 
 <p>The predictions then only need to obtain the mean $\mu_\theta \left( x_t, t \right)$, given by:</p>
 
-\[\mu_\theta \left( x_t, t \right) = \frac{1}{\sqrt{\alpha_t}} \left( x_t - \frac{\beta\_t}{\sqrt{1 - \bar{\alpha}\_t}} \epsilon\_\theta \left( x_t, t \right) \right) \qquad \text{(10)}\]
+\[\begin{align}
+\mu_\theta \left( x_t, t \right) = \frac{1}{\sqrt{\alpha_t}} \left( x_t - \frac{\beta\_t}{\sqrt{1 - \bar{\alpha}\_t}} \epsilon\_\theta \left( x_t, t \right) \right)
+\end{align}\]
 
 <p>where $\alpha_t = \Pi_{s=1}^t \left( 1 - \beta_s \right)$.</p>
 
 <p>Hence, we can directly predict $x_{t-1}$ from $x_{t}$ using the network $\theta$:</p>
 
 \[\begin{align}
-x_{t-1} = \frac{1}{\sqrt{1 - \beta_t}} \left( x_t - \frac{\beta_t}{\sqrt{1 - \alpha_t}} \epsilon_\theta \left( x_t, t \right) \right) + \sqrt{\beta_t} v_t &amp; \qquad \text{(11)}
+x_{t-1} = \frac{1}{\sqrt{1 - \beta_t}} \left( x_t - \frac{\beta_t}{\sqrt{1 - \alpha_t}} \epsilon_\theta \left( x_t, t \right) \right) + \sqrt{\beta_t} v_t
 \end{align}\]
 
 <p>where $v_T \sim \mathcal{N}(0, \mathbf{I})$ is a sample from the pure Gaussian noise.</p>
@@ -224,7 +240,9 @@ applied to a sample \(\mathbf{x}_t\) at any given time step $t$, we should still
 <p>In other words, the likelihood of this next best sample does not depend on the molecules rotation and the probability 
 distribution for each transition in the Markov Chain is roto-invariant:</p>
 
-\[p(y|x) = p(\mathbf{R}y|\mathbf{R}x) \qquad \text{(21)}\]
+\[\begin{align}
+p(y|x) = p(\mathbf{R}y|\mathbf{R}x)
+\end{align}\]
 
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
@@ -322,14 +340,18 @@ sample on the original data distribution.”</strong></p>
 step by minimizing the KL divergence between this estimate and the ground truth, which is equivalent
 to minimizing the negative log likelihood (TBA - reference).</p>
 
-\[L_{vlb} := L_{t-1} := D_{KL}(q(x_{t-1}|x_{t}, x_{0}) \parallel p_{\theta}(x_{t-1}|x_{t})) \qquad \text{(20)}\]
+\[\begin{align}
+L_{vlb} := L_{t-1} := D_{KL}(q(x_{t-1}|x_{t}, x_{0}) \parallel p_{\theta}(x_{t-1}|x_{t}))
+\end{align}\]
 
 <p>The EDM adds a caveat that the predicted distributions must be calibrated to have center of gravity at $\mathbf{0}$, 
 in order to ensure equivariance.</p>
 
 <p>Using the KL divergence loss term with the EDM model parametrization simplifies the loss function to:</p>
 
-\[\mathcal{L}_t = \mathbb{E}_{\epsilon_t \sim \mathcal{N}_{x_h}(0, \mathbf{I})} \left[ \frac{1}{2} w(t) \| \epsilon_t - \hat{\epsilon}_t \|^2 \right] \qquad \text{(22)}\]
+\[\begin{align}
+\mathcal{L}_t = \mathbb{E}_{\epsilon_t \sim \mathcal{N}_{x_h}(0, \mathbf{I})} \left[ \frac{1}{2} w(t) \| \epsilon_t - \hat{\epsilon}_t \|^2 \right]
+\end{align}\]
 
 <p>where 
 $ w(t) = \left(1 - \frac{\text{SNR}(t-1)}{\text{SNR}(t)}\right)$ and $ \hat{\epsilon}_t = \phi(z_t, t)$.</p>
@@ -351,7 +373,9 @@ this costly process, while allowing for a controlled trade-off between speed and
 <p>Song et al. <d-cite key="song2021score"></d-cite> have shown that the noising process in diffusion can be described with a Stochastic Differential Equation (SDE)
 transforming the data distribution $p_{\text{data}}(\mathbf{x})$ in time:</p>
 
-\[d\mathbf{x}_t = \mathbf{\mu}(\mathbf{x}_t, t) dt + \sigma(t) d\mathbf{w}_t \qquad \text{(23)}\]
+\[\begin{align}
+d\mathbf{x}_t = \mathbf{\mu}(\mathbf{x}_t, t) dt + \sigma(t) d\mathbf{w}_t
+\end{align}\]
 
 <p>Where $t$ is the time-step, $\mathbf{\mu}$ is the drift coefficient, $\sigma$ is the diffusion coefficient,
 and $\mathbf{w}_t$ is the stochastic component denoting standard Brownian motion. This stochastic component effectively
@@ -393,7 +417,9 @@ distribution at time $T$.</p>
 <p>This SDE has a remarkable property, that a special ODE exists, whose trajectories sampled at $t$ are distributed
 according to $p_t(\mathbf{x})$ <d-cite key="song2023consistency"></d-cite>:</p>
 
-\[d\mathbf{x}_t = \left[ \mathbf{\mu}(\mathbf{x}_t, t) - \frac{1}{2} \sigma(t)^2 \nabla \log p_t(\mathbf{x}_t) \right] dt \qquad \text{(24)}\]
+\[\begin{align}
+d\mathbf{x}_t = \left[ \mathbf{\mu}(\mathbf{x}_t, t) - \frac{1}{2} \sigma(t)^2 \nabla \log p_t(\mathbf{x}_t) \right] dt
+\end{align}\]
 
 <p>This ODE is dubbed the Probability Flow (PF) ODE by Song et al. <d-cite key="song2023consistency"></d-cite> and corresponds to the different view of diffusion
 manipulating probability mass over time we hinted at in the beginning of the section.</p>
@@ -403,7 +429,9 @@ Since we know the parametrization of the final distribution $p_T(\mathbf{x})$ to
 with $\mathbf{\mu}=0$ and $\sigma(t) = \sqrt{2t}$, this score model can be plugged into the equation (24) and the 
 expression reduces itself to an empirical estimate of the PF ODE:</p>
 
-\[\frac{dx_t}{dt} = -ts\phi(\mathbf{x}_t, t) \qquad \text{(25)}\]
+\[\begin{align}
+\frac{dx_t}{dt} = -ts\phi(\mathbf{x}_t, t)
+\end{align}\]
 
 <p>With $\mathbf{\hat{x}}_T$ sampled from the specified Gaussian at time $T$, the PF ODE can be solved backwards in time 
 to obtain a solution trajectory mapping all points along the way to the initial data distribution at time $\epsilon$.</p>
@@ -444,9 +472,9 @@ is then given as a finite set of samples $\mathbf{x}_t$ for every discretized ti
 
 <p>Given a solution trajectory \({\mathbf{x}_t}\), we define the <em>consistency function</em> as:</p>
 
-<p align="center">
-$f:$ $(\mathbf{x}_t, t)$ $\to$ $\mathbf{x}_{\epsilon}$ 
-</p>
+\[\begin{align}
+f: (\mathbf{x}_t, t) \to \mathbf{x}_{\epsilon}
+\end{align}\]
 
 <p>In other words, a consistency function always outputs a corresponding datapoint at time $\epsilon$, i.e. very close to
 the original data distribution for every pair ($\mathbf{x}_t$, t).</p>
@@ -538,7 +566,9 @@ samples on the data distribution $\hat{x_{\epsilon}}$ $= f_\theta(\hat{x_T}, T)$
 <p>Consistency models can either be trained by “distillation” from a pre-trained diffusion model, or in “isolation” as a standalone generative model from scratch. In the context of our work, we focused only on the latter because the distillation approach has a hard requirement of using a pretrained score based diffusion. 
 In order to train in isolation we ned to leverage the following unbiased estimator:</p>
 
-\[\nabla \log p_t(x_t) = - \mathbb{E} \left[ \frac{x_t - x}{t^2} \middle| x_t \right] \qquad \text{(29)}\]
+\[\begin{align}
+\nabla \log p_t(x_t) = - \mathbb{E} \left[ \frac{x_t - x}{t^2} \middle| x_t \right]
+\end{align}\]
 
 <p>where $x \sim p_\text{data}$ and $x_t \sim \mathcal{N}(x; t^2 I)$.</p>
 
@@ -549,9 +579,9 @@ when using the Euler ODE solver in the limit of $N \to \infty$ <d-cite key="song
 <p>Song et al. <d-cite key="song2023consistency"></d-cite> justify this with a further theorem in their paper and show that the consistency training objective (CT loss)
 can then be defined as:</p>
 
-<p align="center">
-$\mathcal{L}_{CT}^N (\theta, \theta^-)$ = $\mathbb{E}[\lambda(t_n)d(f_\theta(x + t_{n+1} \mathbf{z}, t_{n+1}), f_{\theta^-}(x + t_n \mathbf{z}, t_n))]$ $\qquad \text{(30)}$
-</p>
+\[\begin{align}
+\mathcal{L}_{CT}^N (\theta, \theta^-) &amp;= \mathbb{E}[\lambda(t_n)d(f_\theta(x + t_{n+1} \mathbf{z}, t_{n+1}), f_{\theta^-}(x + t_n \mathbf{z}, t_n))]
+\end{align}\]
 
 <p>where $\mathbf{z} \sim \mathcal{N}(0, I)$.</p>
 
