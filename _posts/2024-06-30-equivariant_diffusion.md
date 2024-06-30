@@ -160,55 +160,29 @@ Using the previous feature and the sum of these messages, the model computes the
 This architecture then satisfies translation and rotation equivariance. Notably, the messages depend on the distance 
 between the nodes and these distances are not changed by isometric transformations.
 
-## Diffusion Models
+## Equivariant Diffusion Model (EDM)
+This section introduces diffusion models and describes how their predictions can be made E(3) equivariant. 
+The categorical properties of atoms are already invariant to E(3) transformations, hence this property only
+needs to be enforced on their positions.
 
-<!--- TBA - reduce text in this section ---->
+### What are Diffusion Models?
 
-Diffusion models <d-cite key="sohl2015deep"></d-cite> are deeply rooted within the principles of physics, where the process describes particles moving 
-from an area of higher concentration to an area of lower concentration - a process governed by random, stochastic 
-interactions. In the physical world, this spreading can largely be traced back to the original configuration, which 
-inspired scientists to create models of this behaviour. When applied to generative modelling, we usually aim to reconstruct data from some observed or sampled noise, which is an approach adopted by many powerful diffusion models. 
+Diffusion models <d-cite key="sohl2015deep"></d-cite><d-cite key="ho2020denoising"></d-cite> are inspired by the principles 
+of diffusion in physics, and model the flow of a data distribution to pure noise over time. A neural network is then 
+trained to learn a reverse process that reconstructs samples on the data distribution from pure noise samples.
 
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
-        <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/Diffusion_microscopic.gif" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
-            <figcaption class="text-center mt-2">Physical diffusion</figcaption>
-        </figure>
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-        <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/Diffusion_models_flower.gif" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
-            <figcaption class="text-center mt-2">Generative modelling with diffusion</figcaption>
+        <figure>
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/ddpm_figure.png" class="img-fluid rounded z-depth-1" zoomable=true %}
+            <figcaption class="text-center mt-2">Figure 3: The Markov process of forward and reverse diffusion <d-cite key="ho2020denoising"></d-cite></figcaption>
         </figure>
     </div>
 </div>
-<div class="row">
-    <div class="col text-center mt-3">
-        <p>Figure 2: Physical diffusion (left) and generative modelling with diffusion (right)</p>
-    </div>
-</div>
-
-<style>
-    .custom-figure .custom-image {
-        height: 200px; /* Set a fixed height for both images */
-        width: auto; /* Maintain aspect ratio and adjust width accordingly */
-        max-width: 100%; /* Ensure the image doesn't exceed the container width */
-    }
-</style>
 
 
-### Denoising Diffusion Probabilistic Models (DDPM)
-
-One of the most widely-used and powerful diffusion models is the Denoising Diffusion Probabilistic Model (DDPM) <d-cite key="ho2020denoising"></d-cite>. 
-In this model, the data is progressively noised and then the model learns to reverse this process, effectively "denoising". 
-This process allows us to generate new samples from pure noise.
-
-
-### Forward diffusion process ("noising")
-
-In DDPMs the forward noising process is parameterized by a Markov process, where transition at each time step $t$ adds
-Gaussian noise with a variance of $\beta_t \in (0,1)$. We formally write this transition as:
+The "forward" noising process can be parameterized by a Markov process <d-cite key="ho2020denoising"></d-cite>, 
+where transition at each time step $t$ adds Gaussian noise with a variance of $\beta_t \in (0,1)$:
 
 $$
 \begin{align}
@@ -224,45 +198,90 @@ q\left( x_1, \ldots, x_T \mid x_0 \right) := \prod_{t=1}^T q \left( x_t \mid x_{
 \end{align}
 $$
 
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/ddpm_figure.png" class="img-fluid rounded z-depth-1" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure 3: The Markov process of forward and reverse diffusion <d-cite key="ho2020denoising"></d-cite></figcaption>
-        </figure>
-    </div>
-</div>
-
-
-
-### Reverse diffusion process ("denoising")
-
-
-
-As Figure 3 shows, the reverse transitions are unknown, hence DDPM approximates them using a neural network 
-parametrized by $\theta$:
+The "reverse" process transitions are unknown and need to be approximated using a neural network parametrized by $\theta$:
 
 $$p_\theta \left( x_{t-1} \mid x_t \right) := \mathcal{N} \left( x_{t-1} ; \mu_\theta \left( x_t, t \right), \Sigma_\theta \left( x_t, t \right) \right) \qquad \text{((9))}$$
 
-Because we know the dynamics of the forward process, we know the variance at each $t$. Therefore, we can fix $\Sigma_\theta \left( x_t, t \right)$ to be $\beta_t \mathbf{I}$.
+Because we know the dynamics of the forward process, the variance $\Sigma_\theta \left( x_t, t \right)$ at time $t$ is 
+known and can be fixed to $\beta_t \mathbf{I}$.
 
-The network prediction is then only needed to obtain $\mu_\theta \left( x_t, t \right)$, given by:
+The predictions then only need to obtain the mean $\mu_\theta \left( x_t, t \right)$, given by:
 
 $$\mu_\theta \left( x_t, t \right) = \frac{1}{\sqrt{\alpha_t}} \left( x_t - \frac{\beta\_t}{\sqrt{1 - \bar{\alpha}\_t}} \epsilon\_\theta \left( x_t, t \right) \right) \qquad \text{(10)}$$
 
 where $\alpha_t = \Pi_{s=1}^t \left( 1 - \beta_s \right)$.
 
-Hence, we can directly predict $x_{t-1}$ from $x_{t}$ using the network $\theta$ as:
+Hence, we can directly predict $x_{t-1}$ from $x_{t}$ using the network $\theta$:
 
 $$
 \begin{align}
-x_{t-1} = \frac{1}{\sqrt{1 - \beta_t}} \left( x_t - \frac{\beta_t}{\sqrt{1 - \alpha_t}} \epsilon_\theta \left( x_t, t \right) \right) + \sqrt{\beta_t} v_t & \qquad \text{((11))}
+x_{t-1} = \frac{1}{\sqrt{1 - \beta_t}} \left( x_t - \frac{\beta_t}{\sqrt{1 - \alpha_t}} \epsilon_\theta \left( x_t, t \right) \right) + \sqrt{\beta_t} v_t & \qquad \text{(11)}
 \end{align}
 $$
 
 where $v_T \sim \mathcal{N}(0, \mathbf{I})$ is a sample from the pure Gaussian noise.
 
-### Training diffusion models
+### Enforcing E(3) equivariance
+<!--- check rotations and reflections or jsut rotations? --->
+Equivariance to rotations and reflections effectively means that if any orthogonal rotation matrix $\mathbf{R}$ is 
+applied to a sample $$\mathbf{x}_t$$ at any given time step $t$, we should still generate a correspondingly rotated 
+"next best sample" $\mathbf{R}\mathbf{x}_{t+1}$ at time $t+1$. 
+
+In other words, the likelihood of this next best sample does not depend on the molecules rotation and the probability 
+distribution for each transition in the Markov Chain is roto-invariant:
+
+$$p(y|x) = p(\mathbf{R}y|\mathbf{R}x) \qquad \text{(21)}$$
+
+<div class="row mt-3">
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/roto_symetry_gaus.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+        </figure>
+    </div>
+    <div class="col-sm mt-3 mt-md-0">
+        <figure class="custom-figure">
+            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/roto_symetry_donut.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
+        </figure>
+    </div>
+</div>
+<div class="row">
+    <div class="col text-center mt-3">
+        <p>Figure 5: Examples of 2D roto-invariant distributions</p>
+    </div>
+</div>
+
+<style>
+    .custom-figure .custom-image {
+        height: 250px; /* Set a fixed height for both images */
+        width: auto; /* Maintain aspect ratio and adjust width accordingly */
+        max-width: 100%; /* Ensure the image doesn't exceed the container width */
+    }
+</style>
+
+An invariant distribution composed with an equivariant invertible function results in an invariant distribution <d-cite key="kohler2020equivariant"></d-cite>. 
+Furthermore, if $x \sim p(x)$ is invariant to a group, and the transition probabilities of a Markov chain $y \sim p(y|x)$ 
+are equivariant, then the marginal distribution of $y$ at any time step $t$ is also invariant to that group <d-cite key="xu2022geodiff"></d-cite>.
+
+Since the underlying EGNN already ensures equivariance, the initial sampling distribution can easily be constrained 
+to something roto-invariant, such as a simple mean zero Gaussian with a diagonal covariance matrix, as seen in Figure 5 (left).
+
+Translations require a few more tricks. It has been shown, that it is impossible to have non-zero distributions 
+invariant to translations <d-cite key="satorras2021en"></d-cite>. Intuitively, the translation invariance property 
+means that any point $\mathbf{x}$ results in the same assigned $p(\mathbf{x})$, leading to a uniform distribution, 
+which, if stretched over an unbounded space, would be approaching zero-valued probabilities thus not integrating 
+to one.
+
+The EDM authors bypass this with a clever trick of always re-centering the generated samples to have center of gravity at
+$\mathbf{0}$ and further show that these $\mathbf{0}$-centered distributions lie on a linear subspace that can reliably be used 
+for equivariant diffusion <d-cite key="hoogeboom2022equivariant"></d-cite><d-cite key="xu2022geodiff"></d-cite>.
+
+We hypothesize that, intuitively, moving a coordinate from e.g. 5 to 6 on any given axis is the same as moving from 
+8 to 9. But EDM predicts the actual atom positions, not a relative change, hence the objective needs to adjusted. 
+By constraining the model to this "subspace" of options where the center of the molecule is always at $\mathbf{0}$, 
+the absolute positions are effectively turned into relative ones w.r.t. to the center of the molecule, hence the model 
+can now learn relationships that do not depend on the absolute position of the whole molecule in 3D space.
+
+### How to train Diffusion Models?
 
 The training objective of diffusion-based generative models amounts to **"maximizing the log-likelihood of the sample generated (at the end of the reverse process) which belongs to the original data distribution."**
 
@@ -323,107 +342,6 @@ The term q(xₜ₋₁|xₜ, x₀) is referred to as _“forward process posterio
 
 During training, our DL model learns to approximate the parameters of this posterior in order to minimize the KL divergence.
 
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        <figure>
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/diffusion_training.gif" class="img-fluid rounded z-depth-1" zoomable=true %}
-            <figcaption class="text-center mt-2">Figure 4: Stochastic sampling process (noisy images on top, predicted images on bottom)</figcaption>
-        </figure>
-    </div>
-</div>
-
-
-
-## Equivariant Diffusion Models (EDM) for 3D molecule generation
-
-We will specifically focus on an E(n) equivariant diffusion model presented by the EDM paper, 
-which specialized in 3D molecular generation <d-cite key="hoogeboom2022equivariant"></d-cite>. The authors used a DDPM-based diffusion model with an EGNN backbone 
-for predicting both continuous (atom coordinates) and categorical features (atom types).
-
-As we have hinted earlier in the EGNN section, molecules are naturally equivariant to E(3) rotations and translation 
-while being easily represented with a graph. By E(3) we refer to the Euclidean group in three dimensions, which includes all transformations (rotations, translations, and reflections) that preserve Euclidean distances in three-dimensional space.
- The categorical atomic properties are already invariant to E(3) 
-transformations, hence they can be generated with a regular diffusion. For the generated atom positions however, 
-we need to specifically ensure this equivariance to rotations and translations throughout the diffusion process.
-
-### How to achieve equivariance during diffusion?
-
-**Rotations**
-
-Being equivariant to rotations, effectively meant that we want rotations applied at any given time step $t$ 
-in the diffusion process to not have an effect on the likelihood of generating a corresponding rotated sample at the 
-next time step $t+1$. In other words, if the best prediction is to move position of each atom $a_i$ in a certain 
-diretion $\mathbf{v}_i$, after we rotate the whole molecule by some arbitrary rotation matrix $\mathbf{R}$, the 
-equivariantly rotated predictions $\mathbf{R}\mathbf{v}_i$ should still be the best one to pick.
-
-Formally, we say that for any orthogonal rotation matrix $\mathbf{R}$ the following must hold:
-
-$$p(y|x) = p(\mathbf{R}y|\mathbf{R}x) \qquad \text{(21)}$$
-
-
-To uphold this property throughout the diffusion process, the Markov chain transition probability distributions at every 
-time step $t$ must be roto-invariant, otherwise rotations would alter the likelihood, breaking this desired equivariance property.
-
-<div class="row mt-3">
-    <div class="col-sm mt-3 mt-md-0">
-        <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/roto_symetry_gaus.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
-            <figcaption class="text-center mt-2">Diffusion in nature</figcaption>
-        </figure>
-    </div>
-    <div class="col-sm mt-3 mt-md-0">
-        <figure class="custom-figure">
-            {% include figure.liquid loading="eager" path="assets/img/2024-06-30-equivariant_diffusion/roto_symetry_donut.png" class="img-fluid rounded z-depth-1 custom-image" zoomable=true %}
-            <figcaption class="text-center mt-2">Diffusion in model</figcaption>
-        </figure>
-    </div>
-</div>
-<div class="row">
-    <div class="col text-center mt-3">
-        <p>Figure 5: Examples of 2D roto-invariant distributions</p>
-    </div>
-</div>
-
-<style>
-    .custom-figure .custom-image {
-        height: 250px; /* Set a fixed height for both images */
-        width: auto; /* Maintain aspect ratio and adjust width accordingly */
-        max-width: 100%; /* Ensure the image doesn't exceed the container width */
-    }
-</style>
-
-
-
-As the EDM authors point out, an invariant distribution composed with an equivariant invertible function results in an
-invariant distribution <d-cite key="kohler2020equivariant"></d-cite>. They further point out that if $x \sim p(x)$ is invariant to a group, and the transition probabilities
-of a Markov chain $y \sim p(y|x)$ are equivariant, then the marginal distribution of $y$ at any time step $t$ is also invariant
-to that group <d-cite key="xu2022geodiff"></d-cite>.
-
-In the case of EDM, the underlying EGNN ensures equivariance while the initial sampling distribution
-can easily be constrained to something roto-invariant, such as a simple mean zero Gaussian with diagonal
-covariance matrix seen in Figure 5 (left).
-
-**Translations**
-
-It has been shown, that it is impossible to have non-zero distributions invariant to translations <d-cite key="satorras2021en"></d-cite>.
-Intuitively, the translation invariance property means that any point $\mathbf{x}$ results in the same assigned $p(\mathbf{x})$,
-leading to a uniform distribution, which, if stretched over an unbounded space, would be approaching zero-valued probabilities
-thus not integrating to one.
-
-The EDM authors bypass this with a clever trick of always re-centering the generated samples to have center of gravity at
-$\mathbf{0}$ and further show that these $\mathbf{0}$-centered distributions lie on a linear subspace that can reliably be used 
-for equivariant diffusion <d-cite key="hoogeboom2022equivariant"></d-cite><d-cite key="xu2022geodiff"></d-cite>. 
-
-
-
-
-
-We hypothesize that, intuitively, moving a coordinate from e.g. 5 to 6 on any given axis is the same as moving from 
-8 to 9. But EDM predicts the actual atom positions, not a relative change, hence the objective needs to adjusted. 
-By constraining the model to this "subspace" of options where the center of the molecule is always at $\mathbf{0}$, 
-the absolute positions are effectively turned into relative ones w.r.t. to the center of the molecule, hence the model 
-can now learn relationships that do not depend on the absolute position of the whole molecule in 3D space.
-
 
 ### Training the EDM
 
@@ -457,7 +375,7 @@ signal-to-noise ration (SNR). Thus, the loss term effectively simplifies to a MS
 Since coordinates and categorical features are on different scales, the EDM authors also found they achieved better performance when scaling the inputs before prediction and then rescaling them back after.
 
 
-### Consistency Models
+## Consistency Models
 
 
 Although diffusion Models have significantly advanced the fields of image, audio, and video generation, but they depend on an iterative de-noising process to generate samples, which can be very slow <d-cite key="song2023consistency"></d-cite>. To generate good samples, a lot of steps are often required (sometimes in the 1000s). This issue is exacerbated when dealing with high dimensional data where all operations are even more computationally expensive. As hinted in the introduction, we look at Consistency models in our work to bypass this bottleneck.
