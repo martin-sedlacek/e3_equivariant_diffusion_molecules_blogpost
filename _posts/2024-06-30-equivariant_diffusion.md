@@ -42,23 +42,20 @@ _styles: >
 In this blog post, we introduce and discuss ["Equivariant Diffusion for Molecule Generation in 3D"](https://arxiv.org/abs/2203.17003) <d-cite key="hoogeboom2022equivariant"></d-cite>, 
 which first introduced 3D molecule generation using diffusion models. Their Equivariant Diffusion Model (EDM) also
 incorporating an Equivariant Graph Neural Network (EGNN) architecture, effectively grounding the model with inductive
-priors about the symmetries in 3D space. This work demonstrated strong improvement over other (non-diffusion) generative 
+priors about the symmetries in 3D space. EDM demonstrated strong improvement over other (non-diffusion) generative 
 methods for molecules at the time, and inspired many subsequent works <d-cite key="anstine2023generative"></d-cite><d-cite key="corso2023diffdock"></d-cite><d-cite key="igashov2024equivariant"></d-cite><d-cite key="xu2023geometric"></d-cite>. 
 
 Traditional diffusion is unfortunately bottle-necked by the sequential denoising process, which can be slow and 
-computationally expensive <d-cite key="song2023consistency"></d-cite>. We aim to demonstrate that an EDM can be trained 
-significantly faster as a Consistency Model <d-cite key="song2023consistency"></d-cite>, enabling it to generate samples 
-with just a single step.
+computationally expensive <d-cite key="song2023consistency"></d-cite>. Hence, we also introduce ["Consistency Models"](https://arxiv.org/abs/2303.01469) <d-cite key="song2023consistency"></d-cite>
+and aim to demonstrate that an EDM can be trained significantly faster in this framework, enabling it to generate 
+samples with as little as a single step.
 
-As demonstrated in several other domains, scaling model parameters to take advantage of increasingly larger 
-compute availability, can drastically improve performance <d-cite key="dosovitskiy2020image"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="krizhevsky2012imagenet"></d-cite>.
-This trend has been shown in language <d-cite key="brown2020language"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="touvron2023llama"></d-cite>, 
-image and video generation <d-cite key="liu2024sora"></d-cite><d-cite key="ramesh2022hierarchical"></d-cite><d-cite key="rombach2022high"></d-cite><d-cite key="saharia2022photorealistic"></d-cite>, 
-and to an extent, in training Graph Neural Networks (GNN) <d-cite key="sriram2022towards"></d-cite>. 
-We hope that using Consistency Models can be a step towards enabling larger GNN backbones, eventually observing 
-similar scaling effects in domains such as molecule generation.
-
-<!--- 260 words --->
+Using Consistency Models can be a step towards enabling much larger GNN backbones, eventually observing 
+similar scaling effects as other domains including language <d-cite key="brown2020language"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="touvron2023llama"></d-cite> 
+or image and video generation <d-cite key="liu2024sora"></d-cite><d-cite key="ramesh2022hierarchical"></d-cite><d-cite key="rombach2022high"></d-cite><d-cite key="saharia2022photorealistic"></d-cite>.
+Such improvement has been demonstrated in training Graph Neural Networks (GNN) <d-cite key="sriram2022towards"></d-cite>,
+and scaling model parameters to take advantage of increasingly larger compute availability, is generally known to improve 
+model performance <d-cite key="dosovitskiy2020image"></d-cite><d-cite key="kaplan2020scaling"></d-cite><d-cite key="krizhevsky2012imagenet"></d-cite>.
 
 <!--- 260 words --->
 
@@ -153,8 +150,8 @@ between the nodes and these distances are not changed by isometric transformatio
 
 ## Equivariant Diffusion Model (EDM)
 This section introduces diffusion models and describes how their predictions can be made E(3) equivariant. 
-The categorical properties of atoms are already invariant to E(3) transformations, hence this property only
-needs to be enforced on their positions.
+The categorical properties of atoms are already invariant to E(3) transformations, hence, we are only 
+interested in enforcing property on the sampled atom positions.
 
 ### What are Diffusion Models?
 
