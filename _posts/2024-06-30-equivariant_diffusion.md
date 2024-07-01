@@ -298,15 +298,15 @@ $$
     }
 </style>
 
-An invariant distribution composed with an equivariant invertible function results in another invariant distribution <d-cite key="kohler2020equivariant"></d-cite>. 
+Such an invariant distribution composed with an equivariant invertible function results in another invariant distribution <d-cite key="kohler2020equivariant"></d-cite>. 
 Furthermore, if $x \sim p(x)$ is invariant to a group, and the transition probabilities of a Markov chain $y \sim p(y|x)$ 
 are equivariant, then the marginal distribution of $y$ at any time step $t$ is also invariant to that group <d-cite key="xu2022geodiff"></d-cite>.
 
-Since the underlying EGNN already ensures equivariant transformation, the remaining constraint can easily be achieved by 
+Since the underlying EGNN already ensures  this equivariance, the remaining constraint can easily be achieved by 
 setting the initial sampling distribution to something roto-invariant, such as a simple mean zero Gaussian with a 
-diagonal covariance matrix, as seen in Figure 3 (left).
+diagonal covariance matrix, as illustrated in Figure 3 (left).
 
-Translation equivariance requires a few more tricks. It has been shown, that it is impossible to have non-zero distributions 
+_Translation equivariance_ requires a few tricks. It has been shown, that it is impossible to have non-zero distributions 
 invariant to translations <d-cite key="satorras2021en"></d-cite>. Intuitively, the translation invariance property 
 means that any point $\mathbf{x}$ results in the same assigned $p(\mathbf{x})$, leading to a uniform distribution, 
 which, if stretched over an unbounded space, would be approaching zero-valued probabilities thus not integrating 
@@ -331,7 +331,7 @@ can now learn relationships that do not depend on the absolute position of the w
 The training objective of diffusion-based generative models amounts to **"maximizing the log-likelihood of the 
 sample on the original data distribution."**
 
-During training, our model learns to approximate the parameters of a posterior distributions at the next time
+During training, a diffusion model learns to approximate the parameters of a posterior distributions at the next time
 step by minimizing the KL divergence between this estimate and the ground truth, which is equivalent
 objective to minimizing the negative log likelihood.
 
@@ -341,9 +341,8 @@ L_{vlb} := L_{t-1} := D_{KL}(q(x_{t-1}|x_{t}, x_{0}) \parallel p_{\theta}(x_{t-1
 \end{align}
 $$
 
-
 The EDM adds a caveat that the predicted distributions must be calibrated to have center of gravity at $\mathbf{0}$, 
-in order to ensure equivariance.
+in order to ensure equivariance. 
 
 Using the KL divergence loss term with the EDM model parametrization simplifies the loss function to:
 

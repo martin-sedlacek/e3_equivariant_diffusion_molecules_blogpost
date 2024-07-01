@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-01T10:24:08+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" hreflang="en" /><updated>2024-07-01T10:35:43+02:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">blank</title><subtitle>GRaM Workshop
 </subtitle><entry><title type="html">Equivariant Diffusion for Molecule Generation in 3D using Consistency Models</title><link href="http://localhost:4000/blog/2024/equivariant_diffusion/" rel="alternate" type="text/html" title="Equivariant Diffusion for Molecule Generation in 3D using Consistency Models" /><published>2024-06-30T00:00:00+02:00</published><updated>2024-06-30T00:00:00+02:00</updated><id>http://localhost:4000/blog/2024/equivariant_diffusion</id><content type="html" xml:base="http://localhost:4000/blog/2024/equivariant_diffusion/"><![CDATA[<h2 id="introduction">Introduction</h2>
 
 <p>In this blog post, we discuss the paper <a href="https://arxiv.org/abs/2203.17003">“Equivariant Diffusion for Molecule Generation in 3D”</a> <d-cite key="hoogeboom2022equivariant"></d-cite>, 
@@ -306,15 +306,15 @@ p(y|x) = p(\mathbf{R}y|\mathbf{R}x)
     }
 </style>
 
-<p>An invariant distribution composed with an equivariant invertible function results in another invariant distribution <d-cite key="kohler2020equivariant"></d-cite>. 
+<p>Such an invariant distribution composed with an equivariant invertible function results in another invariant distribution <d-cite key="kohler2020equivariant"></d-cite>. 
 Furthermore, if $x \sim p(x)$ is invariant to a group, and the transition probabilities of a Markov chain $y \sim p(y|x)$ 
 are equivariant, then the marginal distribution of $y$ at any time step $t$ is also invariant to that group <d-cite key="xu2022geodiff"></d-cite>.</p>
 
-<p>Since the underlying EGNN already ensures equivariant transformation, the remaining constraint can easily be achieved by 
+<p>Since the underlying EGNN already ensures  this equivariance, the remaining constraint can easily be achieved by 
 setting the initial sampling distribution to something roto-invariant, such as a simple mean zero Gaussian with a 
-diagonal covariance matrix, as seen in Figure 3 (left).</p>
+diagonal covariance matrix, as illustrated in Figure 3 (left).</p>
 
-<p>Translation equivariance requires a few more tricks. It has been shown, that it is impossible to have non-zero distributions 
+<p><em>Translation equivariance</em> requires a few tricks. It has been shown, that it is impossible to have non-zero distributions 
 invariant to translations <d-cite key="satorras2021en"></d-cite>. Intuitively, the translation invariance property 
 means that any point $\mathbf{x}$ results in the same assigned $p(\mathbf{x})$, leading to a uniform distribution, 
 which, if stretched over an unbounded space, would be approaching zero-valued probabilities thus not integrating 
@@ -339,7 +339,7 @@ can now learn relationships that do not depend on the absolute position of the w
 <p>The training objective of diffusion-based generative models amounts to <strong>“maximizing the log-likelihood of the 
 sample on the original data distribution.”</strong></p>
 
-<p>During training, our model learns to approximate the parameters of a posterior distributions at the next time
+<p>During training, a diffusion model learns to approximate the parameters of a posterior distributions at the next time
 step by minimizing the KL divergence between this estimate and the ground truth, which is equivalent
 objective to minimizing the negative log likelihood.</p>
 
