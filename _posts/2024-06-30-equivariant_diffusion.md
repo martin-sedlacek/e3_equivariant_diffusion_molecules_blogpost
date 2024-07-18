@@ -4,11 +4,27 @@ title: Equivariant Diffusion for Molecule Generation in 3D using Consistency Mod
 description: <p> Introduction to the seminal papers &quot;Equivariant Diffusion for Molecule Generation in 3D&quot; and &quot;Consistency Models&quot; with an adaptation fusing the two together for fast molecule generation. </p> 
 tags: equivariance, diffusion, molecule generation, consistency models
 giscus_comments: true
-date: 2024-06-30
+date: 2024-07-18
 featured: true
 
 authors:
-  - name: Anonymous
+  - name: Martin Sedlacek *
+    url: "https://martin-sedlacek.com/"
+    affiliations:
+      name: University of Amsterdam
+  - name: Antonios Vozikis *
+    url: "https://vozikis.github.io/"
+    affiliations:
+      name: Vrije Universiteit Amsterdam
+  - name: Patrik Bartak
+    affiliations:
+      name: University of Amsterdam
+  - name: Luke Cadigan
+    affiliations:
+      name: University of Amsterdam
+  - name: Mohan Guo
+    affiliations:
+      name: University of Amsterdam
 
 bibliography: equivariant_diffusion/2024-06-30-equivariant_diffusion.bib
 
