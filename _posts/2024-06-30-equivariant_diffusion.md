@@ -4,11 +4,27 @@ title: Equivariant Diffusion for Molecule Generation in 3D using Consistency Mod
 description: <p> Introduction to the seminal papers &quot;Equivariant Diffusion for Molecule Generation in 3D&quot; and &quot;Consistency Models&quot; with an adaptation fusing the two together for fast molecule generation. </p> 
 tags: equivariance, diffusion, molecule generation, consistency models
 giscus_comments: true
-date: 2024-06-30
+date: 2024-07-18
 featured: true
 
 authors:
-  - name: Anonymous
+  - name: Martin Sedlacek *
+    url: "https://martin-sedlacek.com/"
+    affiliations:
+      name: University of Amsterdam
+  - name: Antonios Vozikis *
+    url: "https://vozikis.github.io/"
+    affiliations:
+      name: Vrije Universiteit Amsterdam
+  - name: Patrik Bartak
+    affiliations:
+      name: University of Amsterdam
+  - name: Luke Cadigan
+    affiliations:
+      name: University of Amsterdam
+  - name: Mohan Guo
+    affiliations:
+      name: University of Amsterdam
 
 bibliography: equivariant_diffusion/2024-06-30-equivariant_diffusion.bib
 
@@ -424,7 +440,7 @@ $$
 $$
 
 With $$\mathbf{\hat{x}}_T$$ sampled from the specified Gaussian at time $$T$$, the PF ODE can be solved backwards in time 
-to obtain a solution trajectory mapping all points along the way to the initial data distribution at time $$\epsilon$.
+to obtain a solution trajectory mapping all points along the way to the initial data distribution at time $$\epsilon$$ very close to zero.
 
 <div class="row mt-3">
     <div class="col-sm mt-3 mt-md-0">
@@ -436,7 +452,7 @@ to obtain a solution trajectory mapping all points along the way to the initial 
 </div>
 
 Given any off-the-shelf ODE solver (e.g. Euler) and a trained score model $$s_\phi(\mathbf{x}, t)$$, we can solve this PF ODE.
-The time horizon $$[\epsilon, T]$$ with $$\epsilon$$ very close to zero is discretized into sub-intervals for improved performance <d-cite key="karras2022elucidating"></d-cite>. A solution trajectory, denoted $$\\{\mathbf{x}_t\\}$$, 
+The time horizon $$[\epsilon, T]$$ is discretized into sub-intervals for improved performance <d-cite key="karras2022elucidating"></d-cite>. A solution trajectory, denoted $$\\{\mathbf{x}_t\\}$$, 
 is then given as a finite set of samples $$\mathbf{x}_t$$ for every discretized time-step $$t$$ between $$\epsilon$$ and $$T$$.
 
 <!--- 1600 words --->
@@ -451,11 +467,13 @@ f: (\mathbf{x}_t, t) \to \mathbf{x}_{\epsilon}
 \end{align}
 $$
 
-In other words, a consistency function always outputs a corresponding datapoint at time $\epsilon$, i.e. very close to
-the original data distribution for every pair ($$\mathbf{x}_t$$, $$t$$).
+In other words, for every pair ($$\mathbf{x}_t$$, $$t$$), a consistency function always outputs a corresponding datapoint 
+at time $\epsilon$, which will be very close to the original data distribution.
 
 Importantly, this function has the property of _self-consistency_: i.e. its outputs are consistent for arbitrary pairs of
-$$(x_t, t)$$ that lie on the same PF ODE trajectory. Hence, we have $$f(x_t, t) = f(x_{t'}, t')$$ for all $$t, t' \in [\epsilon, T]$$.
+$$(x_t, t)$$ that lie on the same PF ODE trajectory. Hence, we have 
+
+$$f(x_t, t) = f(x_{t'}, t') \text{ for all } t, t' \in [\epsilon, T]$$
 
 The goal of a _consistency model_, denoted by $$f_\theta$$, is to estimate this consistency function $$f$$ from data by
 being enforced with this self-consistency property during training.
@@ -588,7 +606,8 @@ both models equally, such as logging.
 
 We observed that the consistency models converge on the training set with similar rate as the regular EDM, even
 achieving slightly lower training NLLs. However, they completely fail to generalize to the validation and test sets with
-much lower atom stability and no molecule stability. These results are surprisingly poor, given that
+much lower atom stability (the proportion of atoms that have the right valency) and no molecule stability (the proportion 
+of generated molecules for which all atoms are stable). These results are surprisingly poor, given that
 the dataset is not particularly complicated, and consistency models have already shown promising results on 
 images <d-cite key="song2023consistency"></d-cite> and reportedly, shows competitive results on QM9 as well <d-cite key="fan2023ecconf"></d-cite>.
 
@@ -610,7 +629,7 @@ model in isolation, achieving nearly identical training loss with up to 24x fast
 the single-step sampling only achieves up to 19% atom stability in best case scenario, compared with the default 
 EDM which consistently reaches 87% or much more with further training. We suspect that a model trained in this 
 set-up might be too prone to overfitting and struggles with generalization to anything outside the training data
-distribution, compared to sequential de-noising predictions of the EDM, which arem uch more robust.
+distribution, compared to sequential de-noising predictions of the EDM, which are more robust by design.
 
 Using multi-step sampling should in theory yield competitive results, but we observed no such improvement. 
 Since it cannot be conclusively ruled out that this was caused by a bug in our multi-step sampling code, we hope 
