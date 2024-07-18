@@ -590,7 +590,8 @@ both models equally, such as logging.
 
 We observed that the consistency models converge on the training set with similar rate as the regular EDM, even
 achieving slightly lower training NLLs. However, they completely fail to generalize to the validation and test sets with
-much lower atom stability and no molecule stability. These results are surprisingly poor, given that
+much lower atom stability (the proportion of atoms that have the right valency) and no molecule stability (the proportion 
+of generated molecules for which all atoms are stable). These results are surprisingly poor, given that
 the dataset is not particularly complicated, and consistency models have already shown promising results on 
 images <d-cite key="song2023consistency"></d-cite> and reportedly, shows competitive results on QM9 as well <d-cite key="fan2023ecconf"></d-cite>.
 
